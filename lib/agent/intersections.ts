@@ -11,15 +11,15 @@ const OPPORTUNITY_BY_PAIR: Record<string, string> = {
   "brands|music":
     "Use the brand and music co-signal to shape creator casting, soundtrack, merchandise, and culturally aligned partnerships.",
   "brands|dining":
-    "Turn the brand and dining co-signal into a design-led food collaboration, limited amenity, or co-branded local activation.",
+    "Turn the brand and local-place co-signal into a design-led neighborhood collaboration, limited amenity, or co-branded activation.",
   "brands|travel":
     "Use the brand and travel co-signal to shape destination partnerships, guest amenities, retail, and arrival moments.",
   "dining|film":
-    "Build a food and cinema moment such as a screening dinner, filmmaker menu, or editorial nightlife experience.",
+    "Build a local-place and cinema moment such as a screening dinner, filmmaker itinerary, or editorial nightlife experience.",
   "dining|music":
-    "Build an after-dark food and sound experience that turns two audience affinities into one bookable or shareable moment.",
+    "Build an after-dark local-place and sound experience that turns two audience affinities into one bookable or shareable moment.",
   "dining|travel":
-    "Convert the dining and travel co-signal into a local itinerary, neighborhood guide, or destination-led guest package.",
+    "Convert the local-place and travel co-signal into a neighborhood guide, cultural itinerary, or destination-led guest package.",
   "film|music":
     "Use the film and music co-signal as the campaign's narrative language, soundtrack direction, and creator brief.",
   "film|travel":
@@ -79,11 +79,22 @@ export function buildCulturalIntersections(
         left.explainability || right.explainability,
       );
 
-      const evidence = sharedContext.length
-        ? `${left.name} and ${right.name} independently surfaced from the same Qloo seed profile and share Qloo metadata: ${sharedContext.join(", ")}.`
-        : `${left.name} and ${right.name} independently surfaced as leading signals in ${leftDomain.domain} and ${rightDomain.domain} from the same Qloo seed profile.`;
+      const leftDrivers = left.drivers ?? [];
+      const rightDrivers = right.drivers ?? [];
+      const sharedDrivers = leftDrivers
+        .filter((leftDriver) =>
+          rightDrivers.some((rightDriver) => rightDriver.id === leftDriver.id),
+        )
+        .map((driver) => driver.name);
+
+      const evidence = sharedDrivers.length
+        ? `${left.name} and ${right.name} were both linked by Qloo explainability to ${sharedDrivers.join(", ")}.`
+        : sharedContext.length
+          ? `${left.name} and ${right.name} independently surfaced from the same Qloo seed profile and share Qloo metadata: ${sharedContext.join(", ")}.`
+          : `${left.name} and ${right.name} independently surfaced as leading signals in ${leftDomain.domain} and ${rightDomain.domain} from the same Qloo seed profile.`;
 
       const _score =
+        sharedDrivers.length * 3 +
         sharedContext.length * 2 +
         affinityScore(left.affinity) +
         affinityScore(right.affinity) +
@@ -98,11 +109,13 @@ export function buildCulturalIntersections(
             id: left.id,
             name: left.name,
             affinity: left.affinity ?? null,
+            drivers: leftDrivers,
           },
           {
             id: right.id,
             name: right.name,
             affinity: right.affinity ?? null,
+            drivers: rightDrivers,
           },
         ],
         sharedContext,
