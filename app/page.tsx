@@ -24,6 +24,13 @@ function displayDomain(domain: string) {
   return domain.toUpperCase();
 }
 
+function formatDriverScore(value: number | null | undefined) {
+  if (typeof value !== "number") return null;
+  return value >= 0 && value <= 1
+    ? `${Math.round(value * 100)}%`
+    : value.toFixed(2);
+}
+
 export default function Home() {
   const [brief, setBrief] = useState(DEFAULT_BRIEF);
   const [result, setResult] = useState<TasteAgentResult | null>(null);
@@ -33,6 +40,11 @@ export default function Home() {
   const domainsWithData = useMemo(
     () => result?.domains.filter((domain) => domain.entities.length) ?? [],
     [result],
+  );
+
+  const signalCount = useMemo(
+    () => domainsWithData.reduce((total, domain) => total + domain.entities.length, 0),
+    [domainsWithData],
   );
 
   async function analyze() {
@@ -154,8 +166,23 @@ export default function Home() {
                   <p className="eyebrow">02 / CULTURAL READ</p>
                   <h2>{result.strategy.campaignConcept.name}</h2>
                 </div>
-                <div className="proofBadge">
-                  {result.resolvedSeeds.length} QLOO SEEDS
+                <div className="proofRail" aria-label="Qloo proof summary">
+                  <div className="proofStat">
+                    <b>{result.resolvedSeeds.length}</b>
+                    <span>QLOO SEEDS</span>
+                  </div>
+                  <div className="proofStat">
+                    <b>{signalCount}</b>
+                    <span>LIVE SIGNALS</span>
+                  </div>
+                  <div className="proofStat">
+                    <b>{result.strategy.intersections.length}</b>
+                    <span>INTERSECTIONS</span>
+                  </div>
+                  <div className="proofStat accentStat">
+                    <b>{result.tasteTags.length}</b>
+                    <span>TASTE TAGS</span>
+                  </div>
                 </div>
               </div>
 
@@ -205,14 +232,45 @@ export default function Home() {
                           <span className="affinity">
                             {formatAffinity(entity.affinity)}
                           </span>
-                          {entity.drivers?.length ? (
-                            <div className="driverLine">
-                              {entity.drivers.some((driver) => typeof driver.score === "number")
-                                ? "QLOO DRIVER "
-                                : "SEED CONTEXT "}
-                              {entity.drivers.map((driver) => driver.name).join(" + ")}
+                          <details className="signalWhy">
+                            <summary>WHY THIS SIGNAL</summary>
+                            <div className="signalWhyBody">
+                              <p>
+                                Qloo returned <strong>{entity.name}</strong> at{" "}
+                                <strong>{formatAffinity(entity.affinity)}</strong> from the
+                                combined cultural seed profile.
+                              </p>
+                              {entity.drivers?.length ? (
+                                entity.drivers.some(
+                                  (driver) => typeof driver.score === "number",
+                                ) ? (
+                                  <div className="driverBreakdown">
+                                    {entity.drivers.map((driver) => (
+                                      <span key={driver.id}>
+                                        {driver.name}
+                                        {formatDriverScore(driver.score)
+                                          ? ` / ${formatDriverScore(driver.score)}`
+                                          : ""}
+                                      </span>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <p className="evidenceNote">
+                                    Explainability references seed context:{" "}
+                                    {entity.drivers
+                                      .map((driver) => driver.name)
+                                      .join(", ")}. The current response does not expose a
+                                    per-seed contribution value.
+                                  </p>
+                                )
+                              ) : (
+                                <p className="evidenceNote">
+                                  Qloo returned this recommendation, but no seed-level
+                                  explainability detail was exposed in this response.
+                                </p>
+                              )}
                             </div>
-                          ) : null}
+                          </details>
                         </div>
                       ))}
                     </div>
@@ -229,7 +287,7 @@ export default function Home() {
                   <article className="intersectionCard" key={intersection.id}>
                     <div className="intersectionTopline">
                       <span>
-                        {intersection.domains[0]} × {intersection.domains[1]}
+                        {displayDomain(intersection.domains[0])} × {displayDomain(intersection.domains[1])}
                       </span>
                       <b>
                         {intersection.explainabilityAvailable
