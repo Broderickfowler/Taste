@@ -438,3 +438,82 @@ footer {
   .resultHeader h2 { letter-spacing: -3px; }
   footer { flex-direction: column; }
 }
+
+
+.intersectionGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--ink);
+  border-left: 1px solid var(--ink);
+}
+
+.intersectionCard {
+  min-height: 300px;
+  padding: 20px;
+  border-right: 1px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+  background: var(--panel);
+}
+
+.intersectionTopline {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 42px;
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.intersectionTopline b {
+  padding: 6px 8px;
+  border: 1px solid var(--ink);
+  background: var(--acid);
+}
+
+.intersectionCard h3 {
+  margin: 0 0 18px;
+  max-width: 760px;
+  font-size: clamp(28px, 4vw, 54px);
+  line-height: .95;
+  letter-spacing: -2px;
+  text-transform: uppercase;
+}
+
+.intersectionCard h3 span {
+  color: var(--blue);
+}
+
+.intersectionEvidence {
+  max-width: 720px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.intersectionOpportunity {
+  margin-top: 28px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.intersectionOpportunity span {
+  display: block;
+  margin-bottom: 9px;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 1.2px;
+}
+
+.intersectionOpportunity p {
+  margin: 0;
+  max-width: 700px;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+@media (max-width: 760px) {
+  .intersectionGrid { grid-template-columns: 1fr; }
+}
