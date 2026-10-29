@@ -81,20 +81,25 @@ export function buildCulturalIntersections(
 
       const leftDrivers = left.drivers ?? [];
       const rightDrivers = right.drivers ?? [];
-      const sharedDrivers = leftDrivers
-        .filter((leftDriver) =>
-          rightDrivers.some((rightDriver) => rightDriver.id === leftDriver.id),
-        )
-        .map((driver) => driver.name);
+      const sharedDriverObjects = leftDrivers.filter((leftDriver) =>
+        rightDrivers.some((rightDriver) => rightDriver.id === leftDriver.id),
+      );
+      const sharedDrivers = sharedDriverObjects.map((driver) => driver.name);
+      const scoredSharedDrivers = sharedDriverObjects.filter(
+        (driver) => typeof driver.score === "number",
+      );
 
-      const evidence = sharedDrivers.length
-        ? `${left.name} and ${right.name} were both linked by Qloo explainability to ${sharedDrivers.join(", ")}.`
-        : sharedContext.length
+      const evidence = scoredSharedDrivers.length
+        ? `Qloo explainability identifies ${scoredSharedDrivers.map((driver) => driver.name).join(", ")} as shared measured drivers for ${left.name} and ${right.name}.`
+        : sharedDrivers.length
+          ? `Qloo explainability references the same seed context for ${left.name} and ${right.name}: ${sharedDrivers.join(", ")}.`
+          : sharedContext.length
           ? `${left.name} and ${right.name} independently surfaced from the same Qloo seed profile and share Qloo metadata: ${sharedContext.join(", ")}.`
           : `${left.name} and ${right.name} independently surfaced as leading signals in ${leftDomain.domain} and ${rightDomain.domain} from the same Qloo seed profile.`;
 
       const _score =
-        sharedDrivers.length * 3 +
+        scoredSharedDrivers.length * 4 +
+        sharedDrivers.length * 1.5 +
         sharedContext.length * 2 +
         affinityScore(left.affinity) +
         affinityScore(right.affinity) +
