@@ -7,6 +7,7 @@ import type {
   BusinessBrief,
   DomainResult,
   QlooEntity,
+  QlooTasteTag,
   TasteAgentResult,
 } from "@/lib/types";
 
@@ -61,7 +62,7 @@ export async function runTasteAgent(
   const domainPlans = planDomains(brief);
   const domains: DomainResult[] = [];
 
-  let tasteTags = [];
+  let tasteTags: QlooTasteTag[] = [];
   try {
     tasteTags = await getTasteTags(seedIds, 12);
     trace.push({
