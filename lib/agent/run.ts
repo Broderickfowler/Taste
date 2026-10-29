@@ -5,6 +5,7 @@ import type {
   AgentTraceStep,
   BusinessBrief,
   DomainResult,
+  QlooEntity,
   TasteAgentResult,
 } from "@/lib/types";
 
@@ -12,7 +13,7 @@ export async function runTasteAgent(
   brief: BusinessBrief,
 ): Promise<TasteAgentResult> {
   const trace: AgentTraceStep[] = [];
-  const resolvedSeeds = [];
+  const resolvedSeeds: QlooEntity[] = [];
   const unresolvedSeeds: string[] = [];
 
   trace.push({
@@ -97,10 +98,19 @@ export async function runTasteAgent(
   }
 
   const strategy = synthesizeStrategy(brief, domains);
+
+  trace.push({
+    stage: "INTERSECT",
+    detail: strategy.intersections.length
+      ? `Ranked ${strategy.intersections.length} cross-domain co-signals. Intersections mean independent Qloo recommendations surfaced from the same seed profile, not a claimed causal relationship.`
+      : "No cross-domain intersections had enough live Qloo data to display.",
+    status: strategy.intersections.length ? "complete" : "warning",
+  });
+
   trace.push({
     stage: "SYNTHESIZE",
     detail:
-      "Converted the Qloo-grounded domain results into one cultural strategy while preserving the underlying evidence.",
+      "Converted the Qloo-grounded domain results and intersections into one cultural strategy while preserving the underlying evidence.",
     status: "complete",
   });
 
