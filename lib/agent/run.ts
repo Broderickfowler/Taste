@@ -1,4 +1,5 @@
-import { getInsights, searchEntity } from "@/lib/qloo/client";
+import { getInsights, getTasteTags, searchEntity } from "@/lib/qloo/client";
+import { extractSeedContributions } from "@/lib/qloo/explainability";
 import { planDomains } from "@/lib/agent/planner";
 import { synthesizeStrategy } from "@/lib/agent/synthesize";
 import type {
@@ -60,14 +61,33 @@ export async function runTasteAgent(
   const domainPlans = planDomains(brief);
   const domains: DomainResult[] = [];
 
+  let tasteTags = [];
+  try {
+    tasteTags = await getTasteTags(seedIds, 12);
+    trace.push({
+      stage: "TASTE",
+      detail: `Received ${tasteTags.length} Qloo taste tags for the combined seed profile.`,
+      status: tasteTags.length ? "complete" : "warning",
+    });
+  } catch (error) {
+    trace.push({
+      stage: "TASTE",
+      detail: `Taste-tag analysis unavailable: ${error instanceof Error ? error.message : "Qloo request failed"}`,
+      status: "warning",
+    });
+  }
+
   for (const plan of domainPlans) {
     try {
-      const entities = await getInsights({
+      const entities = (await getInsights({
         entityType: plan.entityType,
         seedIds,
         location: brief.location,
         take: 8,
-      });
+      })).map((entity) => ({
+        ...entity,
+        drivers: extractSeedContributions(entity.explainability, resolvedSeeds),
+      }));
 
       domains.push({
         domain: plan.domain,
@@ -97,7 +117,7 @@ export async function runTasteAgent(
     }
   }
 
-  const strategy = synthesizeStrategy(brief, domains);
+  const strategy = synthesizeStrategy(brief, domains, tasteTags);
 
   trace.push({
     stage: "INTERSECT",
@@ -110,7 +130,7 @@ export async function runTasteAgent(
   trace.push({
     stage: "SYNTHESIZE",
     detail:
-      "Converted the Qloo-grounded domain results and intersections into one cultural strategy while preserving the underlying evidence.",
+      "Converted Qloo-grounded taste tags, domain results and intersections into one cultural strategy while preserving the evidence trail.",
     status: "complete",
   });
 
@@ -118,6 +138,7 @@ export async function runTasteAgent(
     brief,
     resolvedSeeds,
     unresolvedSeeds,
+    tasteTags,
     domains,
     strategy,
     trace,
