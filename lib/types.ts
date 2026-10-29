@@ -14,6 +14,12 @@ export type BusinessBrief = {
   interests: string[];
 };
 
+export type SeedContribution = {
+  id: string;
+  name: string;
+  score: number | null;
+};
+
 export type QlooEntity = {
   id: string;
   name: string;
@@ -23,6 +29,15 @@ export type QlooEntity = {
   image?: string | null;
   tags: string[];
   explainability?: unknown;
+  drivers?: SeedContribution[];
+  raw?: unknown;
+};
+
+export type QlooTasteTag = {
+  id: string;
+  name: string;
+  affinity: number | null;
+  types: string[];
   raw?: unknown;
 };
 
@@ -37,6 +52,7 @@ export type IntersectionSignal = {
   id: string;
   name: string;
   affinity: number | null;
+  drivers: SeedContribution[];
 };
 
 export type CulturalIntersection = {
@@ -72,6 +88,7 @@ export type TasteAgentResult = {
   brief: BusinessBrief;
   resolvedSeeds: QlooEntity[];
   unresolvedSeeds: string[];
+  tasteTags: QlooTasteTag[];
   domains: DomainResult[];
   strategy: TasteStrategy;
   trace: AgentTraceStep[];
