@@ -13,7 +13,7 @@ const DOMAIN_CONFIG: Record<CulturalDomain, Omit<DomainPlan, "domain">> = {
   },
   dining: {
     entityType: "urn:entity:place",
-    rationale: "Dining exposes local lifestyle, venue and partnership opportunities.",
+    rationale: "Local places reveal neighborhood lifestyle, venue and partnership opportunities.",
   },
   brands: {
     entityType: "urn:entity:brand",
