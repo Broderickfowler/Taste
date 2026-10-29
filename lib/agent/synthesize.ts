@@ -22,6 +22,35 @@ function titleCase(value: string) {
     .join(" ");
 }
 
+function locationCode(location: string) {
+  const city = location.split(",")[0]?.trim() || "LOCAL";
+  if (city.toLowerCase() === "guadalajara") return "GDL";
+  return city.replace(/[^a-z]/gi, "").slice(0, 4).toUpperCase() || "LOCAL";
+}
+
+function intersectionCampaignName(
+  domains: [string, string],
+  location: string,
+) {
+  const pair = [...domains].sort().join("|");
+  const code = locationCode(location);
+
+  const names: Record<string, string> = {
+    "dining|music": `AFTER HOURS / ${code}`,
+    "film|music": `FRAME & FREQUENCY / ${code}`,
+    "brands|music": `CULTURE IN MOTION / ${code}`,
+    "brands|dining": `LOCAL FORM / ${code}`,
+    "dining|film": `SCREEN & TABLE / ${code}`,
+    "dining|travel": `CITY SIGNAL / ${code}`,
+    "film|travel": `CINEMATIC CITY / ${code}`,
+    "music|travel": `SOUND OF PLACE / ${code}`,
+    "brands|travel": `ARRIVAL CULTURE / ${code}`,
+    "brands|film": `VISUAL CODE / ${code}`,
+  };
+
+  return names[pair] || `CULTURAL SIGNAL / ${code}`;
+}
+
 export function synthesizeStrategy(
   brief: BusinessBrief,
   domains: DomainResult[],
@@ -42,9 +71,9 @@ export function synthesizeStrategy(
 
   const campaignName =
     leadIntersection
-      ? `${leadIntersection.signals[0].name} × ${leadIntersection.signals[1].name}`
-      : brief.location.toLowerCase().includes("guadalajara")
-        ? "CULTURAL SIGNAL / GDL"
+      ? intersectionCampaignName(leadIntersection.domains, brief.location)
+      : brief.location
+        ? `CULTURAL SIGNAL / ${locationCode(brief.location)}`
         : `${titleCase(brief.businessName)} / CULTURAL SIGNAL`;
 
   const intersectionPremise = leadIntersection
