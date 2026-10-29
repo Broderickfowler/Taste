@@ -1,4 +1,4 @@
-import type { QlooEntity } from "@/lib/types";
+import type { QlooEntity, QlooTasteTag } from "@/lib/types";
 
 const QLOO_BASE_URL =
   process.env.QLOO_BASE_URL?.replace(/\/$/, "") ||
@@ -62,6 +62,20 @@ function extractEntityCandidates(payload: any): any[] {
     payload?.data?.results,
     payload?.entities,
     payload?.data,
+  ];
+
+  for (const candidate of candidates) {
+    if (Array.isArray(candidate)) return candidate;
+  }
+
+  return [];
+}
+
+function extractTagCandidates(payload: any): any[] {
+  const candidates = [
+    payload?.results?.tags,
+    payload?.data?.results?.tags,
+    payload?.tags,
   ];
 
   for (const candidate of candidates) {
@@ -139,6 +153,26 @@ function normalizeEntity(raw: any): QlooEntity | null {
   };
 }
 
+function normalizeTasteTag(raw: any): QlooTasteTag | null {
+  const id = raw?.tag_id || raw?.id || raw?.tag_value;
+  const name = raw?.name || raw?.label;
+  if (!id || !name) return null;
+
+  const affinity =
+    raw?.query?.affinity ??
+    raw?.affinity ??
+    raw?.score ??
+    null;
+
+  return {
+    id: String(id),
+    name: String(name),
+    affinity: typeof affinity === "number" ? affinity : null,
+    types: asArray(raw?.types).map(String),
+    raw,
+  };
+}
+
 export async function searchEntity(
   query: string,
   type?: string,
@@ -190,6 +224,23 @@ export async function getInsights(args: {
   return extractEntityCandidates(payload)
     .map(normalizeEntity)
     .filter((entity): entity is QlooEntity => Boolean(entity));
+}
+
+export async function getTasteTags(
+  seedIds: string[],
+  take = 12,
+): Promise<QlooTasteTag[]> {
+  const payload = await qlooFetch("/v2/insights", {
+    "filter.type": "urn:tag",
+    "signal.interests.entities": seedIds.join(","),
+    "feature.explainability": true,
+    take,
+  });
+
+  return extractTagCandidates(payload)
+    .map(normalizeTasteTag)
+    .filter((tag): tag is QlooTasteTag => Boolean(tag))
+    .sort((a, b) => (b.affinity ?? 0) - (a.affinity ?? 0));
 }
 
 export async function qlooHealthcheck() {
