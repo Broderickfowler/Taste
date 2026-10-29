@@ -176,7 +176,7 @@ export default function Home() {
 
               <div className="domainGrid">
                 {domainsWithData.map((domain) => (
-                  <article className="domainCard" key={domain.domain}>
+                  <article className="domainCard" key={domain.domain === "dining" ? "LOCAL PLACES" : domain.domain}>
                     <div className="domainHeading">
                       <h3>{domain.domain}</h3>
                       <span>{domain.entities.length} SIGNALS</span>
@@ -200,6 +200,11 @@ export default function Home() {
                           <span className="affinity">
                             {formatAffinity(entity.affinity)}
                           </span>
+                          {entity.drivers?.length ? (
+                            <div className="driverLine">
+                              DRIVEN BY {entity.drivers.map((driver) => driver.name).join(" + ")}
+                            </div>
+                          ) : null}
                         </div>
                       ))}
                     </div>
