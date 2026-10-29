@@ -19,6 +19,11 @@ function formatAffinity(value: number | null | undefined) {
     : value.toFixed(2);
 }
 
+function displayDomain(domain: string) {
+  if (domain === "dining") return "LOCAL PLACES";
+  return domain.toUpperCase();
+}
+
 export default function Home() {
   const [brief, setBrief] = useState(DEFAULT_BRIEF);
   const [result, setResult] = useState<TasteAgentResult | null>(null);
@@ -178,7 +183,7 @@ export default function Home() {
                 {domainsWithData.map((domain) => (
                   <article className="domainCard" key={domain.domain === "dining" ? "LOCAL PLACES" : domain.domain}>
                     <div className="domainHeading">
-                      <h3>{domain.domain}</h3>
+                      <h3>{displayDomain(domain.domain)}</h3>
                       <span>{domain.entities.length} SIGNALS</span>
                     </div>
                     <p className="domainRationale">{domain.rationale}</p>
@@ -202,7 +207,10 @@ export default function Home() {
                           </span>
                           {entity.drivers?.length ? (
                             <div className="driverLine">
-                              DRIVEN BY {entity.drivers.map((driver) => driver.name).join(" + ")}
+                              {entity.drivers.some((driver) => typeof driver.score === "number")
+                                ? "QLOO DRIVER "
+                                : "SEED CONTEXT "}
+                              {entity.drivers.map((driver) => driver.name).join(" + ")}
                             </div>
                           ) : null}
                         </div>
