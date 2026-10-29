@@ -208,7 +208,43 @@ export default function Home() {
               </div>
 
               <div className="sectionLabel resultLabel">
-                04 / STRATEGY TRANSLATION
+                04 / CULTURAL INTERSECTIONS
+              </div>
+
+              <div className="intersectionGrid">
+                {result.strategy.intersections.map((intersection) => (
+                  <article className="intersectionCard" key={intersection.id}>
+                    <div className="intersectionTopline">
+                      <span>
+                        {intersection.domains[0]} × {intersection.domains[1]}
+                      </span>
+                      <b>
+                        {intersection.explainabilityAvailable
+                          ? "QLOO EXPLAINABILITY"
+                          : "QLOO CO-SIGNAL"}
+                      </b>
+                    </div>
+
+                    <h3>
+                      {intersection.signals[0].name}
+                      <span> × </span>
+                      {intersection.signals[1].name}
+                    </h3>
+
+                    <p className="intersectionEvidence">
+                      {intersection.evidence}
+                    </p>
+
+                    <div className="intersectionOpportunity">
+                      <span>BUSINESS OPPORTUNITY</span>
+                      <p>{intersection.opportunity}</p>
+                    </div>
+                  </article>
+                ))}
+              </div>
+
+              <div className="sectionLabel resultLabel">
+                05 / STRATEGY TRANSLATION
               </div>
 
               <div className="strategyGrid">
