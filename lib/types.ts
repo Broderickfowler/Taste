@@ -33,6 +33,22 @@ export type DomainResult = {
   entities: QlooEntity[];
 };
 
+export type IntersectionSignal = {
+  id: string;
+  name: string;
+  affinity: number | null;
+};
+
+export type CulturalIntersection = {
+  id: string;
+  domains: [CulturalDomain, CulturalDomain];
+  signals: [IntersectionSignal, IntersectionSignal];
+  sharedContext: string[];
+  evidence: string;
+  opportunity: string;
+  explainabilityAvailable: boolean;
+};
+
 export type AgentTraceStep = {
   stage: string;
   detail: string;
@@ -41,6 +57,7 @@ export type AgentTraceStep = {
 
 export type TasteStrategy = {
   culturalDNA: string[];
+  intersections: CulturalIntersection[];
   campaignConcept: {
     name: string;
     premise: string;
