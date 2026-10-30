@@ -5,12 +5,12 @@ export type CulturalDomain =
   | "film"
   | "travel";
 
-export type BusinessBrief = {
-  businessName: string;
-  businessType: string;
+export type StayIntent = "Rest" | "Explore" | "Romance" | "Nightlife" | "Food";
+
+export type GuestBrief = {
+  propertyName: string;
   location: string;
-  audience: string;
-  goal: string;
+  stayIntent: StayIntent;
   interests: string[];
 };
 
@@ -48,48 +48,44 @@ export type DomainResult = {
   entities: QlooEntity[];
 };
 
-export type IntersectionSignal = {
-  id: string;
-  name: string;
-  affinity: number | null;
-  drivers: SeedContribution[];
-};
-
-export type CulturalIntersection = {
-  id: string;
-  domains: [CulturalDomain, CulturalDomain];
-  signals: [IntersectionSignal, IntersectionSignal];
-  sharedContext: string[];
-  evidence: string;
-  opportunity: string;
-  explainabilityAvailable: boolean;
-};
-
 export type AgentTraceStep = {
   stage: string;
   detail: string;
   status: "complete" | "warning";
 };
 
-export type TasteStrategy = {
-  culturalDNA: string[];
-  intersections: CulturalIntersection[];
-  campaignConcept: {
-    name: string;
-    premise: string;
-  };
-  creativeDirection: string[];
-  partnershipIdeas: string[];
-  contentIdeas: string[];
-  experienceIdeas: string[];
+export type ExperienceMoment = {
+  title: string;
+  action: string;
+  rationale: string;
+  evidence: string[];
+};
+
+export type StaffPrepSection = {
+  area: "ROOM" | "F&B" | "MEDIA" | "LOCAL";
+  actions: string[];
+};
+
+export type HospitalityExperience = {
+  profile: string;
+  headline: string;
+  room: ExperienceMoment;
+  arrival: ExperienceMoment;
+  welcome: ExperienceMoment;
+  dinner: ExperienceMoment;
+  after: ExperienceMoment;
+  tomorrow: ExperienceMoment;
+  unexpected: ExperienceMoment;
+  staffPrep: StaffPrepSection[];
+  confidence: "High" | "Medium";
 };
 
 export type TasteAgentResult = {
-  brief: BusinessBrief;
+  guest: GuestBrief;
   resolvedSeeds: QlooEntity[];
   unresolvedSeeds: string[];
   tasteTags: QlooTasteTag[];
   domains: DomainResult[];
-  strategy: TasteStrategy;
+  experience: HospitalityExperience;
   trace: AgentTraceStep[];
 };
