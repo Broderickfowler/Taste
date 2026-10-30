@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Taste",
   description:
-    "Cultural intelligence that finds the overlap between what people like and what businesses can build.",
+    "The same hotel. Your version. Taste turns cultural preferences into personalized hotel experiences powered by Qloo.",
 };
 
 export default function RootLayout({
