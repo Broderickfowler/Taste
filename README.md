@@ -1,52 +1,63 @@
 # Taste
 
-**The overlap is the opportunity.**
+**The same hotel. Your version.**
 
-Live demo: https://taste-os-psi.vercel.app
+Taste is a personalized hospitality experience engine powered by Qloo.
 
-Taste helps brands, hotels, restaurants, agencies, and experience-led businesses understand what actually moves an audience across culture.
+The hotel is already chosen. The guest gives Taste three things they love and the kind of stay they want. Taste resolves those references through Qloo, explores adjacent cultural affinities, then translates the results into concrete changes the property can make before arrival.
 
-A user enters a business brief, target audience, location, objective, and a few known cultural signals. Taste resolves those signals to Qloo entities, explores related taste across multiple domains, identifies cross-category intersections, and translates the evidence into campaign direction, partnerships, content, and real-world experiences.
+## Demo
 
-## Core principle
+Guest 01:
+- Bad Bunny
+- A24
+- Soho House
+- Nightlife
 
-**Qloo maps the taste. Taste finds the overlap.**
+Guest 02:
+- Sade
+- Studio Ghibli
+- Muji
+- Rest
 
-Without Qloo, the product would be forced to guess cultural fit from a prompt. With Qloo, recommendations are grounded in structured taste relationships.
+Both guests stay at Casa Forma in Guadalajara. The point of the demo is to show the same property adapting differently for each person.
 
-## What it does
+## Product flow
 
-1. Resolves human-readable cultural references to Qloo entities.
-2. Plans which cultural domains matter most for the business brief.
-3. Queries Qloo Insights across music, local places, brands, film, and travel.
-4. Requests Qloo explainability and preserves the evidence trail.
-5. Runs a Qloo taste-tag analysis for the combined seed profile.
-6. Finds cross-domain cultural intersections.
-7. Converts those intersections into business opportunities.
-8. Shows the user why each signal surfaced and how it informed the strategy.
-
-## Example
-
-A boutique hotel in Guadalajara can enter:
-
-- Target audience: design-conscious American travelers ages 28-40
-- Objective: increase direct bookings and cultural relevance
-- Known signals: A24, Bad Bunny, Soho House
-
-Taste then maps adjacent music, local places, brands, film, and travel signals, identifies useful intersections, and creates a strategic direction grounded in Qloo data.
-
-## Agent workflow
-
-Business brief  
-→ domain planning  
+Guest taste  
 → Qloo entity resolution  
-→ Qloo taste analysis  
-→ cross-domain Insights  
-→ explainability parsing  
-→ cultural intersections  
-→ strategy synthesis
+→ Qloo taste tags  
+→ cross-domain insights  
+→ Taste experience synthesis  
+→ guest stay  
+→ hotel preparation card
 
-The agent is intentionally bounded. It may choose which domains to explore and translate evidence into strategy, but it does not fabricate Qloo entities, affinities, or unresolved evidence.
+## Guest-facing output
+
+Taste creates:
+- room direction
+- arrival soundtrack direction
+- welcome beverage or bite direction
+- dinner recommendation
+- after-dark recommendation
+- next-day local discovery
+- one unexpected cultural recommendation
+
+## Staff-facing output
+
+The hotel receives a practical preparation card across:
+- ROOM
+- F&B
+- MEDIA
+- LOCAL
+
+The card also includes a confidence level and an inspectable Qloo evidence layer.
+
+## Why Qloo is necessary
+
+Without Qloo, three declared preferences become an LLM vibe guess.
+
+With Qloo, Taste can resolve those references into structured cultural relationships across artists, places, brands, film, destinations and taste tags. Those relationships are what allow the hotel experience to change in a grounded way.
 
 ## Qloo integration
 
@@ -55,32 +66,21 @@ Hackathon API base:
 `https://hackathon.api.qloo.com`
 
 Taste uses:
-
 - `/search` for entity resolution
 - `/v2/insights` for cross-domain recommendations
-- `signal.interests.entities` to ground requests in resolved Qloo entities
-- `feature.explainability=true` to retain supporting evidence
-- `urn:tag` taste analysis for Cultural DNA
+- `signal.interests.entities` for combined guest taste
+- `feature.explainability=true` for evidence
+- `urn:tag` analysis for cultural profile tags
 
-The Qloo API key is used server-side only and is never sent to the browser.
+The Qloo API key remains server-side.
 
 ## Product integrity
 
 - Missing evidence stays missing.
-- Unresolved cultural seeds are not silently replaced.
-- Domain failures do not become fake recommendations.
-- Co-signals are described as intersections, not causation.
-- Qloo evidence remains inspectable through the product UI and agent trace.
-
-## Demo presets
-
-The live app includes three demo briefs:
-
-- Casa Forma: boutique hospitality
-- NOIR//FORM: independent fashion
-- LUNA SOCIAL: restaurant and nightlife
-
-These help demonstrate that the agent changes its cultural exploration and strategy based on business context.
+- Unresolved interests are not silently replaced.
+- Qloo recommendations remain inspectable.
+- The system does not claim causation from affinity.
+- Hotel actions are explicitly framed as Taste's operational translation of Qloo-backed signals.
 
 ## Tech stack
 
@@ -98,13 +98,3 @@ These help demonstrate that the agent changes its cultural exploration and strat
 2. Copy `.env.example` to `.env.local`
 3. Add `QLOO_API_KEY`
 4. Run `npm run dev`
-
-## Project documentation
-
-- `docs/architecture.md`
-- `docs/qloo-integration.md`
-- `docs/judging-strategy.md`
-
-## License
-
-MIT
