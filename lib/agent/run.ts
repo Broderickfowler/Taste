@@ -1,18 +1,18 @@
 import { getInsights, getTasteTags, searchEntity } from "@/lib/qloo/client";
 import { extractSeedContributions } from "@/lib/qloo/explainability";
 import { planDomains } from "@/lib/agent/planner";
-import { synthesizeStrategy } from "@/lib/agent/synthesize";
+import { synthesizeExperience } from "@/lib/agent/synthesize";
 import type {
   AgentTraceStep,
-  BusinessBrief,
   DomainResult,
+  GuestBrief,
   QlooEntity,
   QlooTasteTag,
   TasteAgentResult,
 } from "@/lib/types";
 
 export async function runTasteAgent(
-  brief: BusinessBrief,
+  guest: GuestBrief,
 ): Promise<TasteAgentResult> {
   const trace: AgentTraceStep[] = [];
   const resolvedSeeds: QlooEntity[] = [];
@@ -20,25 +20,25 @@ export async function runTasteAgent(
 
   trace.push({
     stage: "PLAN",
-    detail: `Selected cultural domains based on a ${brief.businessType} brief and the goal: ${brief.goal}`,
+    detail: \`Building a ${guest.stayIntent.toLowerCase()} stay for ${guest.propertyName} in ${guest.location}.\`,
     status: "complete",
   });
 
-  for (const interest of brief.interests) {
+  for (const interest of guest.interests) {
     try {
       const entity = await searchEntity(interest);
       if (entity) {
         resolvedSeeds.push(entity);
         trace.push({
           stage: "RESOLVE",
-          detail: `Resolved "${interest}" to Qloo entity ${entity.name} (${entity.id}).`,
+          detail: \`Resolved "${interest}" to Qloo entity ${entity.name} (${entity.id}).\`,
           status: "complete",
         });
       } else {
         unresolvedSeeds.push(interest);
         trace.push({
           stage: "RESOLVE",
-          detail: `Qloo returned no usable entity for "${interest}". It was not guessed or replaced.`,
+          detail: \`Qloo returned no usable entity for "${interest}". It was not guessed or replaced.\`,
           status: "warning",
         });
       }
@@ -46,7 +46,7 @@ export async function runTasteAgent(
       unresolvedSeeds.push(interest);
       trace.push({
         stage: "RESOLVE",
-        detail: `Could not resolve "${interest}": ${error instanceof Error ? error.message : "unknown error"}`,
+        detail: \`Could not resolve "${interest}": ${error instanceof Error ? error.message : "unknown error"}\`,
         status: "warning",
       });
     }
@@ -59,21 +59,21 @@ export async function runTasteAgent(
   }
 
   const seedIds = resolvedSeeds.map((entity) => entity.id);
-  const domainPlans = planDomains(brief);
+  const domainPlans = planDomains(guest);
   const domains: DomainResult[] = [];
 
   let tasteTags: QlooTasteTag[] = [];
   try {
     tasteTags = await getTasteTags(seedIds, 12);
     trace.push({
-      stage: "TASTE",
-      detail: `Received ${tasteTags.length} Qloo taste tags for the combined seed profile.`,
+      stage: "PROFILE",
+      detail: \`Received ${tasteTags.length} Qloo taste tags for the combined guest profile.\`,
       status: tasteTags.length ? "complete" : "warning",
     });
   } catch (error) {
     trace.push({
-      stage: "TASTE",
-      detail: `Taste-tag analysis unavailable: ${error instanceof Error ? error.message : "Qloo request failed"}`,
+      stage: "PROFILE",
+      detail: \`Taste-tag analysis unavailable: ${error instanceof Error ? error.message : "Qloo request failed"}\`,
       status: "warning",
     });
   }
@@ -83,7 +83,7 @@ export async function runTasteAgent(
       const entities = (await getInsights({
         entityType: plan.entityType,
         seedIds,
-        location: brief.location,
+        location: guest.location,
         take: 8,
       })).map((entity) => ({
         ...entity,
@@ -98,8 +98,8 @@ export async function runTasteAgent(
       });
 
       trace.push({
-        stage: "EXPLORE",
-        detail: `${plan.domain}: received ${entities.length} Qloo recommendations with explainability requested.`,
+        stage: "ADAPT",
+        detail: \`${plan.domain}: received ${entities.length} Qloo recommendations to shape the stay.\`,
         status: entities.length ? "complete" : "warning",
       });
     } catch (error) {
@@ -111,37 +111,29 @@ export async function runTasteAgent(
       });
 
       trace.push({
-        stage: "EXPLORE",
-        detail: `${plan.domain}: ${error instanceof Error ? error.message : "Qloo request failed"}`,
+        stage: "ADAPT",
+        detail: \`${plan.domain}: ${error instanceof Error ? error.message : "Qloo request failed"}\`,
         status: "warning",
       });
     }
   }
 
-  const strategy = synthesizeStrategy(brief, domains, tasteTags);
+  const experience = synthesizeExperience(guest, domains, tasteTags);
 
   trace.push({
-    stage: "INTERSECT",
-    detail: strategy.intersections.length
-      ? `Ranked ${strategy.intersections.length} cross-domain co-signals. Intersections mean independent Qloo recommendations surfaced from the same seed profile, not a claimed causal relationship.`
-      : "No cross-domain intersections had enough live Qloo data to display.",
-    status: strategy.intersections.length ? "complete" : "warning",
-  });
-
-  trace.push({
-    stage: "SYNTHESIZE",
+    stage: "OPERATE",
     detail:
-      "Converted Qloo-grounded taste tags, domain results and intersections into one cultural strategy while preserving the evidence trail.",
+      "Translated Qloo-backed affinities into guest-facing stay moments and a staff preparation card while preserving the evidence trail.",
     status: "complete",
   });
 
   return {
-    brief,
+    guest,
     resolvedSeeds,
     unresolvedSeeds,
     tasteTags,
     domains,
-    strategy,
+    experience,
     trace,
   };
 }
