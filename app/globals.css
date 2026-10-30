@@ -1041,3 +1041,49 @@ footer span {
     grid-template-columns: 1fr;
   }
 }
+
+
+.propertyGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.propertyField {
+  display: block;
+}
+
+.propertyField > span {
+  display: block;
+  margin: 0 0 8px 2px;
+  color: var(--muted);
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+.propertyField input {
+  width: 100%;
+  min-height: 58px;
+  padding: 14px 15px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  outline: none;
+  background: white;
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.propertyField input:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 4px rgba(77,93,255,0.08);
+}
+
+@media (max-width: 760px) {
+  .propertyGrid {
+    grid-template-columns: 1fr;
+  }
+}
