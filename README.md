@@ -1,16 +1,16 @@
-# TASTE//OS
+# Taste
 
-**Qloo-powered cultural intelligence for business strategy**
+**The overlap is the opportunity.**
 
 Live demo: https://taste-os-psi.vercel.app
 
-TASTE//OS helps brands, hotels, restaurants, agencies, and experience-led businesses understand what actually moves an audience across culture.
+Taste helps brands, hotels, restaurants, agencies, and experience-led businesses understand what actually moves an audience across culture.
 
-A user enters a business brief, target audience, location, objective, and a few known cultural signals. TASTE//OS resolves those signals to Qloo entities, explores related taste across multiple domains, identifies cross-category intersections, and translates the evidence into campaign direction, partnerships, content, and real-world experiences.
+A user enters a business brief, target audience, location, objective, and a few known cultural signals. Taste resolves those signals to Qloo entities, explores related taste across multiple domains, identifies cross-category intersections, and translates the evidence into campaign direction, partnerships, content, and real-world experiences.
 
 ## Core principle
 
-**Qloo determines affinity. TASTE//OS turns affinity into strategy.**
+**Qloo maps the taste. Taste finds the overlap.**
 
 Without Qloo, the product would be forced to guess cultural fit from a prompt. With Qloo, recommendations are grounded in structured taste relationships.
 
@@ -33,7 +33,7 @@ A boutique hotel in Guadalajara can enter:
 - Objective: increase direct bookings and cultural relevance
 - Known signals: A24, Bad Bunny, Soho House
 
-TASTE//OS then maps adjacent music, local places, brands, film, and travel signals, identifies useful intersections, and creates a strategic direction grounded in Qloo data.
+Taste then maps adjacent music, local places, brands, film, and travel signals, identifies useful intersections, and creates a strategic direction grounded in Qloo data.
 
 ## Agent workflow
 
@@ -54,7 +54,7 @@ Hackathon API base:
 
 `https://hackathon.api.qloo.com`
 
-TASTE//OS uses:
+Taste uses:
 
 - `/search` for entity resolution
 - `/v2/insights` for cross-domain recommendations
