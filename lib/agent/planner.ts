@@ -1,4 +1,4 @@
-import type { BusinessBrief, CulturalDomain } from "@/lib/types";
+import type { CulturalDomain, GuestBrief } from "@/lib/types";
 
 type DomainPlan = {
   domain: CulturalDomain;
@@ -9,37 +9,39 @@ type DomainPlan = {
 const DOMAIN_CONFIG: Record<CulturalDomain, Omit<DomainPlan, "domain">> = {
   music: {
     entityType: "urn:entity:artist",
-    rationale: "Music reveals atmosphere, identity, event and creator adjacency.",
+    rationale: "Music shapes arrival energy, soundtrack direction and the emotional tempo of the stay.",
   },
   dining: {
     entityType: "urn:entity:place",
-    rationale: "Local places reveal neighborhood lifestyle, venue and partnership opportunities.",
+    rationale: "Local places turn guest taste into specific food, drink and neighborhood recommendations.",
   },
   brands: {
     entityType: "urn:entity:brand",
-    rationale: "Brands expose aesthetic, status and collaboration signals.",
+    rationale: "Brand affinities help translate taste into room mood, service style and visual restraint.",
   },
   film: {
     entityType: "urn:entity:movie",
-    rationale: "Film helps translate taste into visual language and storytelling.",
+    rationale: "Film affinities provide a cinematic language for atmosphere, pacing and in-room recommendations.",
   },
   travel: {
     entityType: "urn:entity:destination",
-    rationale: "Destinations reveal the travel contexts this audience is drawn toward.",
+    rationale: "Travel affinities reveal the kinds of places, pace and discovery patterns the guest gravitates toward.",
   },
 };
 
-export function planDomains(brief: BusinessBrief): DomainPlan[] {
-  const text = `${brief.businessType} ${brief.goal}`.toLowerCase();
+export function planDomains(guest: GuestBrief): DomainPlan[] {
+  const intent = guest.stayIntent.toLowerCase();
 
   const priority: CulturalDomain[] =
-    /hotel|hospitality|resort|travel|tourism/.test(text)
-      ? ["dining", "travel", "music", "brands", "film"]
-      : /restaurant|food|bar|cafe/.test(text)
-        ? ["dining", "music", "brands", "travel", "film"]
-        : /fashion|apparel|beauty|retail/.test(text)
-          ? ["brands", "music", "film", "dining", "travel"]
-          : ["brands", "music", "dining", "film", "travel"];
+    intent === "food"
+      ? ["dining", "brands", "music", "film", "travel"]
+      : intent === "nightlife"
+        ? ["music", "dining", "brands", "film", "travel"]
+        : intent === "rest"
+          ? ["brands", "film", "music", "dining", "travel"]
+          : intent === "romance"
+            ? ["dining", "music", "film", "brands", "travel"]
+            : ["travel", "dining", "brands", "music", "film"];
 
   return priority.map((domain) => ({
     domain,
