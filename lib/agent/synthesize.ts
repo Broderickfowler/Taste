@@ -89,48 +89,48 @@ export function synthesizeExperience(
 
   return {
     profile,
-    headline: \`${guest.propertyName}, tuned to this guest.\`,
+    headline: guest.propertyName + ", tuned to this guest.",
     room: moment(
       "ROOM",
       intentRoom[guest.stayIntent],
-      \`The room direction uses the guest's declared intent plus Qloo affinities around ${leadBrand} and ${leadFilm}.\`,
+      "The room direction uses the guest's declared intent plus Qloo affinities around " + leadBrand + " and " + leadFilm + ".",
       evidence(top(brands, 2), top(film, 2)),
     ),
     arrival: moment(
       "ARRIVAL",
-      \`Build a short arrival listening sequence around ${leadArtist}, then soften the energy to match a ${guest.stayIntent.toLowerCase()} stay.\`,
+      "Build a short arrival listening sequence around " + leadArtist + ", then soften the energy to match a " + guest.stayIntent.toLowerCase() + " stay.",
       "Music is not treated as decoration. It sets the emotional tempo of check-in and the first ten minutes in the room.",
       evidence(top(music, 3)),
     ),
     welcome: moment(
       "WELCOME",
       guest.stayIntent === "Food"
-        ? \`Offer a small locally sourced tasting bite or beverage that feels adjacent to ${leadPlace} rather than a generic amenity.\`
-        : \`Choose a small local welcome beverage or bite with the same restraint and cultural position as ${leadBrand}.\`,
+        ? "Offer a small locally sourced tasting bite or beverage that feels adjacent to " + leadPlace + " rather than a generic amenity."
+        : "Choose a small local welcome beverage or bite with the same restraint and cultural position as " + leadBrand + ".",
       "The welcome moment connects the guest's cross-domain taste profile to something physical the hotel can actually prepare.",
       evidence(top(dining, 2), top(brands, 2)),
     ),
     dinner: moment(
       "DINNER",
-      \`Lead with ${leadPlace} as the primary dinner direction, then keep one backup from the same Qloo place set.\`,
+      "Lead with " + leadPlace + " as the primary dinner direction, then keep one backup from the same Qloo place set.",
       "The recommendation is generated from the guest's combined cultural seeds and localized to the property market.",
       evidence(top(dining, 3)),
     ),
     after: moment(
       "AFTER",
       intentAfter[guest.stayIntent],
-      \`Use ${leadArtist} and ${leadBrand} as the cultural filter so the evening does not collapse into a generic 'top nightlife' list.\`,
+      "Use " + leadArtist + " and " + leadBrand + " as the cultural filter so the evening does not collapse into a generic top nightlife list.",
       evidence(top(music, 2), top(brands, 2), top(dining, 1)),
     ),
     tomorrow: moment(
       "TOMORROW",
-      \`Build a short local discovery around the sensibility Qloo connects to ${leadDestination}, then pair it with one nearby place from the guest's dining profile.\`,
+      "Build a short local discovery around the sensibility Qloo connects to " + leadDestination + ", then pair it with one nearby place from the guest's dining profile.",
       "The next-day plan is shaped by the guest's taste pattern, not a one-size-fits-all city itinerary.",
       evidence(top(travel, 2), top(dining, 2)),
     ),
     unexpected: moment(
       "UNEXPECTED",
-      \`Add one surprise cultural recommendation adjacent to ${leadFilm} or ${leadBrand} that the guest did not explicitly ask for.\`,
+      "Add one surprise cultural recommendation adjacent to " + leadFilm + " or " + leadBrand + " that the guest did not explicitly ask for.",
       "This is the demo moment that shows Qloo reaching beyond declared preferences into adjacent taste.",
       evidence(top(film, 2), top(brands, 2)),
     ),
@@ -139,28 +139,28 @@ export function synthesizeExperience(
         area: "ROOM",
         actions: [
           intentRoom[guest.stayIntent],
-          \`Use ${leadBrand} as a reference for restraint and visual tone, without imitating the brand.\`,
+          "Use " + leadBrand + " as a reference for restraint and visual tone, without imitating the brand.",
         ],
       },
       {
         area: "F&B",
         actions: [
-          \`Prepare one welcome beverage or bite adjacent to ${leadPlace}.\`,
-          \`Keep ${names(top(dining, 2)).join(" and ") || "two local options"} ready for concierge handoff.\`,
+          "Prepare one welcome beverage or bite adjacent to " + leadPlace + ".",
+          "Keep " + (names(top(dining, 2)).join(" and ") || "two local options") + " ready for concierge handoff.",
         ],
       },
       {
         area: "MEDIA",
         actions: [
-          \`Arrival audio direction: ${leadArtist} and adjacent artists from the Qloo set.\`,
-          \`In-room film direction: ${leadFilm} or a culturally adjacent title.\`,
+          "Arrival audio direction: " + leadArtist + " and adjacent artists from the Qloo set.",
+          "In-room film direction: " + leadFilm + " or a culturally adjacent title.",
         ],
       },
       {
         area: "LOCAL",
         actions: [
-          \`Primary evening recommendation: ${leadPlace}.\`,
-          \`Next-day discovery should reflect the guest's ${profile.toLowerCase()} profile.\`,
+          "Primary evening recommendation: " + leadPlace + ".",
+          "Next-day discovery should reflect the guest's " + profile.toLowerCase() + " profile.",
         ],
       },
     ],
