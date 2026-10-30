@@ -1,4 +1,4 @@
-import { getInsights, getTasteTags, resolveLocation, searchEntity } from "@/lib/qloo/client";
+import { getInsights, getTasteTags, searchEntity } from "@/lib/qloo/client";
 import { extractSeedContributions } from "@/lib/qloo/explainability";
 import { planDomains } from "@/lib/agent/planner";
 import { synthesizeExperience } from "@/lib/agent/synthesize";
@@ -6,18 +6,10 @@ import type {
   AgentTraceStep,
   DomainResult,
   GuestBrief,
-  InterpretedInterest,
-  LocationContext,
   QlooEntity,
   QlooTasteTag,
   TasteAgentResult,
 } from "@/lib/types";
-
-function displayType(type?: string) {
-  if (!type) return "Qloo entity";
-  const last = type.split(":").pop() || type;
-  return last.charAt(0).toUpperCase() + last.slice(1);
-}
 
 export async function runTasteAgent(
   guest: GuestBrief,
@@ -25,68 +17,10 @@ export async function runTasteAgent(
   const trace: AgentTraceStep[] = [];
   const resolvedSeeds: QlooEntity[] = [];
   const unresolvedSeeds: string[] = [];
-  const interpretedInterests: InterpretedInterest[] = [];
-
-  const requestedLocation = [guest.neighborhood, guest.location]
-    .filter(Boolean)
-    .join(", ");
-
-  let locationContext: LocationContext = {
-    requested: requestedLocation,
-    resolvedName: requestedLocation,
-    resolvedId: null,
-    strictBoundary: true,
-  };
-
-  try {
-    const resolvedLocation = await resolveLocation(requestedLocation);
-    if (resolvedLocation) {
-      locationContext = {
-        requested: requestedLocation,
-        resolvedName: resolvedLocation.name,
-        resolvedId: resolvedLocation.id,
-        strictBoundary: true,
-      };
-      trace.push({
-        stage: "LOCATION",
-        detail:
-          'Resolved hotel geography "' +
-          requestedLocation +
-          '" to ' +
-          resolvedLocation.name +
-          ". Local place searches use a strict locality boundary.",
-        status: "complete",
-      });
-    } else {
-      trace.push({
-        stage: "LOCATION",
-        detail:
-          'Could not resolve "' +
-          requestedLocation +
-          '" as a destination entity. Local searches will still use the supplied text with a strict boundary.',
-        status: "warning",
-      });
-    }
-  } catch (error) {
-    trace.push({
-      stage: "LOCATION",
-      detail:
-        "Location resolution warning: " +
-        (error instanceof Error ? error.message : "unknown error"),
-      status: "warning",
-    });
-  }
 
   trace.push({
     stage: "PLAN",
-    detail:
-      "Building a " +
-      guest.stayIntent.toLowerCase() +
-      " stay for " +
-      guest.propertyName +
-      " in " +
-      locationContext.requested +
-      ".",
+    detail: "Building a " + guest.stayIntent.toLowerCase() + " stay for " + guest.propertyName + " in " + guest.location + ".",
     status: "complete",
   });
 
@@ -95,32 +29,16 @@ export async function runTasteAgent(
       const entity = await searchEntity(interest);
       if (entity) {
         resolvedSeeds.push(entity);
-        interpretedInterests.push({
-          input: interest,
-          resolvedName: entity.name,
-          resolvedType: displayType(entity.type),
-          id: entity.id,
-        });
         trace.push({
           stage: "RESOLVE",
-          detail:
-            'Resolved "' +
-            interest +
-            '" to ' +
-            entity.name +
-            " (" +
-            displayType(entity.type) +
-            ").",
+          detail: 'Resolved "' + interest + '" to Qloo entity ' + entity.name + " (" + entity.id + ").",
           status: "complete",
         });
       } else {
         unresolvedSeeds.push(interest);
         trace.push({
           stage: "RESOLVE",
-          detail:
-            'Qloo returned no usable entity for "' +
-            interest +
-            '". It was not guessed or replaced.',
+          detail: 'Qloo returned no usable entity for "' + interest + '". It was not guessed or replaced.',
           status: "warning",
         });
       }
@@ -128,11 +46,7 @@ export async function runTasteAgent(
       unresolvedSeeds.push(interest);
       trace.push({
         stage: "RESOLVE",
-        detail:
-          'Could not resolve "' +
-          interest +
-          '": ' +
-          (error instanceof Error ? error.message : "unknown error"),
+        detail: 'Could not resolve "' + interest + '": ' + (error instanceof Error ? error.message : "unknown error"),
         status: "warning",
       });
     }
@@ -153,41 +67,31 @@ export async function runTasteAgent(
     tasteTags = await getTasteTags(seedIds, 12);
     trace.push({
       stage: "PROFILE",
-      detail:
-        "Received " +
-        tasteTags.length +
-        " Qloo taste tags for the combined guest profile.",
+      detail: "Received " + tasteTags.length + " Qloo taste tags for the combined guest profile.",
       status: tasteTags.length ? "complete" : "warning",
     });
   } catch (error) {
     trace.push({
       stage: "PROFILE",
-      detail:
-        "Taste-tag analysis unavailable: " +
-        (error instanceof Error ? error.message : "Qloo request failed"),
+      detail: "Taste-tag analysis unavailable: " + (error instanceof Error ? error.message : "Qloo request failed"),
       status: "warning",
     });
   }
 
   for (const plan of domainPlans) {
     try {
-      const entities = (
-        await getInsights({
-          entityType: plan.entityType,
-          seedIds,
-          location:
-            plan.domain === "dining" || plan.domain === "local"
-              ? locationContext.requested
-              : guest.location,
-          tags:
-            plan.domain === "dining"
-              ? "restaurant"
-              : plan.domain === "local"
-                ? "attraction"
-                : undefined,
-          take: 8,
-        })
-      ).map((entity) => ({
+      const entities = (await getInsights({
+        entityType: plan.entityType,
+        seedIds,
+        location: guest.location,
+        tags:
+          plan.domain === "dining"
+            ? "restaurant"
+            : plan.domain === "local"
+              ? "attraction"
+              : undefined,
+        take: 8,
+      })).map((entity) => ({
         ...entity,
         drivers: extractSeedContributions(entity.explainability, resolvedSeeds),
       }));
@@ -201,11 +105,7 @@ export async function runTasteAgent(
 
       trace.push({
         stage: "ADAPT",
-        detail:
-          plan.domain +
-          ": received " +
-          entities.length +
-          " Qloo recommendations to shape the stay.",
+        detail: plan.domain + ": received " + entities.length + " Qloo recommendations to shape the stay.",
         status: entities.length ? "complete" : "warning",
       });
     } catch (error) {
@@ -218,10 +118,7 @@ export async function runTasteAgent(
 
       trace.push({
         stage: "ADAPT",
-        detail:
-          plan.domain +
-          ": " +
-          (error instanceof Error ? error.message : "Qloo request failed"),
+        detail: plan.domain + ": " + (error instanceof Error ? error.message : "Qloo request failed"),
         status: "warning",
       });
     }
@@ -232,14 +129,12 @@ export async function runTasteAgent(
   trace.push({
     stage: "OPERATE",
     detail:
-      "Translated Qloo-backed affinities into an executable itinerary and staff preparation plan constrained by the hotel's enabled capabilities.",
+      "Translated Qloo-backed affinities into guest-facing stay moments and a staff preparation card while preserving the evidence trail.",
     status: "complete",
   });
 
   return {
     guest,
-    interpretedInterests,
-    locationContext,
     resolvedSeeds,
     unresolvedSeeds,
     tasteTags,
