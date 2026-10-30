@@ -206,12 +206,14 @@ export async function getInsights(args: {
   entityType: string;
   seedIds: string[];
   location?: string;
+  tags?: string;
   take?: number;
 }): Promise<QlooEntity[]> {
   const payload = await qlooFetch("/v2/insights", {
     "filter.type": args.entityType,
     "signal.interests.entities": args.seedIds.join(","),
     "filter.exclude.entities": args.seedIds.join(","),
+    "filter.tags": args.tags,
     "feature.explainability": true,
     "filter.location.query":
       args.entityType === "urn:entity:place" ||
