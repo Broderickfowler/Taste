@@ -136,8 +136,8 @@ export default function Home() {
     <main className="appShell">
       <header className="topbar">
         <div className="brandLockup">
-          <div className="wordmark">TASTE//OS</div>
-          <span>Culture into strategy</span>
+          <div className="wordmark">Taste</div>
+          <span>The overlap is the opportunity</span>
         </div>
         <div className="topmeta">
           <span>Powered by Qloo</span>
@@ -149,16 +149,14 @@ export default function Home() {
         <div className="heroIntro">
           <p className="eyebrow">Cultural intelligence for business decisions</p>
           <h1>
-            Know what
+            The overlap is
             <br />
-            <span>moves your audience.</span>
+            <span>the opportunity.</span>
           </h1>
         </div>
         <div className="heroAside">
           <p>
-            TASTE//OS maps cross-category taste signals, finds the cultural
-            intersections that matter, and translates them into campaign,
-            partnership, content and experience direction.
+            Taste maps what your audience is connected to across culture, then shows which combinations are worth building around.
           </p>
           <div className="heroProof">
             <span>Qloo entity resolution</span>
@@ -453,7 +451,7 @@ export default function Home() {
                 <h3>The combinations a generic audience profile would miss.</h3>
               </div>
               <p>
-                TASTE//OS combines independent Qloo signals into practical
+                Taste combines independent Qloo signals into practical
                 opportunities without claiming causation.
               </p>
             </div>
@@ -549,8 +547,8 @@ export default function Home() {
       )}
 
       <footer>
-        <div>TASTE//OS</div>
-        <p>Qloo determines affinity. TASTE//OS turns affinity into strategy.</p>
+        <div>Taste</div>
+        <p>Qloo maps the taste. Taste finds the overlap.</p>
         <span>Qloo Agentic Hackathon / 2026</span>
       </footer>
     </main>
