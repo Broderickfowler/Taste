@@ -3,7 +3,6 @@ import type {
   ExperienceMoment,
   GuestBrief,
   HospitalityExperience,
-  HotelCapability,
   QlooEntity,
   QlooTasteTag,
 } from "@/lib/types";
@@ -41,21 +40,12 @@ function placeAt(domain: DomainResult | undefined, index: number, fallback: stri
   return domain?.entities[index]?.name || fallback;
 }
 
-function entityAt(domain: DomainResult | undefined, index: number, fallback: string) {
+function artistAt(domain: DomainResult | undefined, index: number, fallback: string) {
   return domain?.entities[index]?.name || fallback;
 }
 
-function hasCapability(guest: GuestBrief, capability: HotelCapability) {
-  return guest.capabilities.includes(capability);
-}
-
-function addMinutes(time: string, minutes: number) {
-  const match = /^(\d{1,2}):(\d{2})$/.exec(time.trim());
-  if (!match) return minutes === 0 ? time : time + " +" + minutes + "m";
-  const total = (Number(match[1]) * 60 + Number(match[2]) + minutes) % (24 * 60);
-  const hours = Math.floor(total / 60);
-  const mins = total % 60;
-  return String(hours).padStart(2, "0") + ":" + String(mins).padStart(2, "0");
+function filmAt(domain: DomainResult | undefined, index: number, fallback: string) {
+  return domain?.entities[index]?.name || fallback;
 }
 
 export function synthesizeExperience(
@@ -69,18 +59,18 @@ export function synthesizeExperience(
   const film = domains.find((d) => d.domain === "film");
   const local = domains.find((d) => d.domain === "local");
 
-  const artistOne = entityAt(music, 0, "a low-key arrival mix");
-  const artistTwo = entityAt(music, 1, "a complementary second artist");
+  const artistOne = artistAt(music, 0, "a quiet soul and jazz mix");
+  const artistTwo = artistAt(music, 1, "a complementary second artist");
   const dinnerOne = placeAt(dining, 0, "a nearby independent restaurant");
   const dinnerTwo = placeAt(dining, 1, "a second nearby restaurant");
-  const eveningPlace = placeAt(local, 1, placeAt(dining, 2, dinnerTwo));
+  const eveningPlace = placeAt(dining, 2, dinnerTwo);
+  const filmOne = filmAt(film, 0, "a visually distinctive film");
   const discovery = placeAt(local, 0, placeAt(dining, 3, dinnerTwo));
-  const filmOne = entityAt(film, 0, "a visually distinctive film");
 
-  const tags = cleanTags(tasteTags);
+  const tagProfile = cleanTags(tasteTags);
   const profile =
-    tags.length > 0
-      ? tags.join(" / ")
+    tagProfile.length > 0
+      ? tagProfile.join(" / ")
       : guest.stayIntent === "Rest"
         ? "quiet / design-led / restorative"
         : guest.stayIntent === "Nightlife"
@@ -91,194 +81,113 @@ export function synthesizeExperience(
               ? "food-led / local / discovery-driven"
               : "curious / local / culture-led";
 
-  const lighting = hasCapability(guest, "Lighting");
-  const welcomeAmenity = hasCapability(guest, "Welcome amenity");
-  const audio = hasCapability(guest, "In-room audio");
-  const streaming = hasCapability(guest, "In-room streaming");
-  const concierge = hasCapability(guest, "Concierge");
-  const reservations = hasCapability(guest, "Restaurant reservations");
-  const transport = hasCapability(guest, "Transport");
-  const roomService = hasCapability(guest, "Room service");
+  const roomAction: Record<GuestBrief["stayIntent"], string> = {
+    Rest: "Before arrival, close the blackout curtains halfway, set only the bedside lamps to warm light, turn the TV off, remove unnecessary tabletop materials, and place water beside the bed.",
+    Explore: "Keep the room visually calm, place water and a compact neighborhood card by the entry, leave the desk clear, and have a walking route ready for the first two hours after check-in.",
+    Romance: "Set warm low lighting, remove visual clutter, place two glasses and chilled sparkling water in the room, and keep the first hour after arrival free of nonessential service interruptions.",
+    Nightlife: "Use a brighter arrival light preset, place two bottles of water by the bed, make charging access obvious, and leave a late-return card with room-service and transport information.",
+    Food: "Keep the room minimal, place water and a small palate-cleansing snack at arrival, and have the dinner route and reservation details visible before the guest unpacks.",
+  };
 
-  const roomAction = lighting
-    ? guest.stayIntent === "Nightlife"
-      ? "Set a brighter arrival preset, leave bedside lighting warm for the return, clear the desk, and make charging access obvious."
-      : "Set warm low lighting, remove unnecessary visual clutter, keep the TV off, and place water beside the bed before arrival."
-    : "Keep the room visually quiet, remove unnecessary tabletop clutter, leave the TV off, and place water beside the bed before arrival.";
+  const welcomeAction: Record<GuestBrief["stayIntent"], string> = {
+    Rest: "Serve chilled mineral water with citrus and a small seasonal fruit plate. Keep the presentation quiet and minimal.",
+    Explore: "Offer a local coffee or tea with a small grab-and-go bite that the guest can take into the neighborhood.",
+    Romance: "Set out chilled sparkling water, two glasses, seasonal fruit, and a small piece of dark chocolate.",
+    Nightlife: "Offer cold sparkling water, citrus, and a light salty snack before the guest heads out for the evening.",
+    Food: "Serve a small local tasting bite with a nonalcoholic aperitif so the first food moment feels intentional without replacing dinner.",
+  };
 
-  const welcomeAction = welcomeAmenity
-    ? guest.stayIntent === "Nightlife"
-      ? "Place cold sparkling water, citrus, and a light salty snack in the room before check-in."
-      : guest.stayIntent === "Food"
-        ? "Place a small local tasting bite with a nonalcoholic aperitif in the room before check-in."
-        : "Place chilled mineral water with citrus and a small seasonal fruit plate in the room before check-in."
-    : "Skip the physical amenity. Put one concise personalized welcome card in the room with the first recommendation and the evening contact point.";
+  const afterAction: Record<GuestBrief["stayIntent"], string> = {
+    Rest: "Keep the evening short. Recommend " + eveningPlace + " only if the guest wants to go back out, otherwise route them directly back for a quiet in-room wind-down.",
+    Explore: "Use " + eveningPlace + " as the optional final stop, then send the guest back through a walkable neighborhood route rather than adding another destination.",
+    Romance: "Use " + eveningPlace + " as the late stop and keep the recommendation focused on atmosphere, conversation, and a slower pace.",
+    Nightlife: "Send the guest to " + eveningPlace + " after dinner as the primary late-night move, then keep one transport option ready for the return to the hotel.",
+    Food: "After dinner, use " + eveningPlace + " as the second stop for a drink, dessert, or late bite instead of sending the guest to an unrelated nightlife venue.",
+  };
 
-  const arrivalAction = audio
-    ? "Queue a 20-minute arrival set beginning with " + artistOne + ", then transition into " + artistTwo + ". Keep the volume low."
-    : "Use " + artistOne + " and " + artistTwo + " as the arrival soundtrack direction in the guest card, but do not promise in-room playback because this property does not support it.";
-
-  const dinnerAction =
-    "Recommend " +
-    dinnerOne +
-    " first and " +
-    dinnerTwo +
-    " as the backup." +
-    (reservations
-      ? " Prepare a reservation option for both."
-      : " Present both as concierge suggestions without implying the hotel can book them.") +
-    (guest.constraints.dietary
-      ? " Before confirming either, staff must verify the guest's dietary note: " +
-        guest.constraints.dietary +
-        "."
-      : "");
-
-  const afterAction =
-    guest.stayIntent === "Rest"
-      ? "Keep the evening optional. Offer " + eveningPlace + " only if the guest wants to go back out."
-      : "Use " + eveningPlace + " as the next local move after dinner." +
-        (transport
-          ? " Keep a return transport option ready."
-          : " Do not promise transport; provide simple return directions instead.");
-
-  const tomorrowAction =
-    guest.stayIntent === "Nightlife"
-      ? "Plan a slower start and make " + discovery + " the first optional daytime stop."
-      : "Make " + discovery + " the anchor local discovery, with open time around it rather than a packed itinerary.";
-
-  const unexpectedAction = streaming
-    ? "Leave " + filmOne + " as an optional in-room wind-down recommendation."
-    : "Add " + filmOne + " to the guest's optional watch-later list without presenting it as an in-room amenity.";
-
-  const staffPrep = [
-    {
-      area: "ROOM" as const,
-      actions: [
-        roomAction,
-        roomService
-          ? "Room service is available as a fallback if the guest chooses not to go back out."
-          : "Do not suggest room service as a fallback because this property does not offer it.",
-      ],
-    },
-    {
-      area: "F&B" as const,
-      actions: [
-        welcomeAction,
-        dinnerAction,
-        guest.constraints.dietary
-          ? "Dietary note: " + guest.constraints.dietary + ". Validate directly with the venue before confirmation."
-          : "No dietary note supplied.",
-      ],
-    },
-    {
-      area: "MEDIA" as const,
-      actions: [arrivalAction, unexpectedAction],
-    },
-    {
-      area: "LOCAL" as const,
-      actions: [
-        "Primary local discovery: " + discovery + ".",
-        "Evening option: " + eveningPlace + ".",
-        guest.constraints.avoid
-          ? "Avoid preference: " + guest.constraints.avoid + ". Staff should use this as a human review constraint."
-          : "No explicit avoid preference supplied.",
-      ],
-    },
-  ];
-
-  if (!concierge) {
-    staffPrep[3].actions.push(
-      "This property has no concierge capability enabled, so surface directions directly to the guest instead of creating a concierge handoff.",
-    );
-  }
-
-  const itinerary = [
-    {
-      time: guest.constraints.arrivalTime,
-      title: "Arrival",
-      detail: roomAction,
-    },
-    {
-      time: addMinutes(guest.constraints.arrivalTime, 15),
-      title: "Settle in",
-      detail: welcomeAction,
-    },
-    {
-      time: addMinutes(guest.constraints.arrivalTime, 30),
-      title: "Sound of the stay",
-      detail: arrivalAction,
-    },
-    {
-      time: addMinutes(guest.constraints.arrivalTime, 150),
-      title: "Dinner",
-      detail: dinnerAction,
-    },
-    {
-      time: addMinutes(guest.constraints.arrivalTime, 300),
-      title: "After",
-      detail: afterAction,
-    },
-    {
-      time: "Next morning",
-      title: "Local discovery",
-      detail: tomorrowAction,
-    },
-  ];
+  const tomorrowAction: Record<GuestBrief["stayIntent"], string> = {
+    Rest: "Start late. Offer a quiet breakfast window, then suggest " + discovery + " as the single optional outing rather than building a packed itinerary.",
+    Explore: "Build the morning around " + discovery + " as the anchor, with one nearby coffee stop and enough open time for the guest to wander.",
+    Romance: "Keep the morning unhurried and use " + discovery + " as the only planned stop before lunch.",
+    Nightlife: "Plan a slower start, late coffee, and " + discovery + " as the first daytime stop so the schedule respects the previous night.",
+    Food: "Use " + discovery + " as the daytime anchor, then add one nearby lunch recommendation from the same local area.",
+  };
 
   return {
-    profile:
-      profile +
-      " / " +
-      guest.constraints.budget.toLowerCase() +
-      " budget",
+    profile,
     headline: guest.propertyName + ", tuned to this guest.",
     room: moment(
       "ROOM",
-      roomAction,
-      "Only actions supported by the property's enabled room capabilities are included.",
+      roomAction[guest.stayIntent],
+      "This changes the physical arrival conditions of the room before the guest walks in.",
       evidence(top(brands, 2), top(film, 2)),
     ),
     arrival: moment(
       "ARRIVAL",
-      arrivalAction,
-      "Music influences the arrival mood, but playback is only promised when the property supports in-room audio.",
+      "Queue a 20-minute arrival set beginning with " + artistOne + ", then transition into " + artistTwo + ". Keep the volume low enough that it feels like atmosphere, not programming.",
+      "The first few minutes should immediately feel different from a standard room handoff.",
       evidence(top(music, 3)),
     ),
     welcome: moment(
       "WELCOME",
-      welcomeAction,
-      "The welcome moment adapts to the stay intent and the hotel's amenity capabilities.",
+      welcomeAction[guest.stayIntent],
+      "The welcome is intentionally small, specific, and easy for hotel staff to prepare before check-in.",
       evidence(top(dining, 2), top(brands, 2)),
     ),
     dinner: moment(
       "DINNER",
-      dinnerAction,
-      "Dinner uses local restaurant inventory and keeps dietary verification explicit rather than inferred.",
+      "Recommend " + dinnerOne + " first. Keep " + dinnerTwo + " as the backup so staff can offer a real alternative without restarting the search.",
+      "The guest receives a specific first choice and one fallback, not a long recommendation list.",
       evidence(top(dining, 3)),
     ),
     after: moment(
       "AFTER",
-      afterAction,
-      "The after-dinner move uses local inventory and respects whether the hotel can arrange transport.",
-      evidence(top(local, 4), top(dining, 2)),
+      afterAction[guest.stayIntent],
+      "The evening recommendation follows the pace of the stay instead of defaulting every guest to the same nightlife list.",
+      evidence(top(dining, 4), top(music, 2)),
     ),
     tomorrow: moment(
       "TOMORROW",
-      tomorrowAction,
-      "Local discovery comes from location-scoped place inventory, not destination recommendations.",
-      evidence(top(local, 4)),
+      tomorrowAction[guest.stayIntent],
+      "The next day is intentionally paced around the guest's selected stay style.",
+      evidence(top(local, 4), top(dining, 2)),
     ),
     unexpected: moment(
       "UNEXPECTED",
-      unexpectedAction,
-      "Adjacent film taste becomes an optional discovery without pretending the hotel offers unsupported media services.",
+      "Leave a discreet in-room recommendation for " + filmOne + " as an optional wind-down choice, without making it part of the formal itinerary.",
+      "This is a small adjacent discovery the guest did not explicitly request.",
       evidence(top(film, 3)),
     ),
-    staffPrep,
-    itinerary,
-    confidence:
-      domains.filter((domain) => domain.entities.length >= 2).length >= 3
-        ? "High"
-        : "Medium",
+    staffPrep: [
+      {
+        area: "ROOM",
+        actions: [
+          roomAction[guest.stayIntent],
+          "Complete the setup before the guest reaches the room. Do not explain the personalization unless the guest asks.",
+        ],
+      },
+      {
+        area: "F&B",
+        actions: [
+          welcomeAction[guest.stayIntent],
+          "Keep " + dinnerOne + " and " + dinnerTwo + " ready as the concierge's two dinner choices.",
+        ],
+      },
+      {
+        area: "MEDIA",
+        actions: [
+          "Arrival audio: begin with " + artistOne + " and move into " + artistTwo + ".",
+          "Optional in-room film: " + filmOne + ".",
+        ],
+      },
+      {
+        area: "LOCAL",
+        actions: [
+          "Dinner: " + dinnerOne + ". Backup: " + dinnerTwo + ".",
+          "Later or next-day option: " + discovery + ".",
+        ],
+      },
+    ],
+    confidence: domains.filter((domain) => domain.entities.length >= 2).length >= 3 ? "High" : "Medium",
   };
 }
