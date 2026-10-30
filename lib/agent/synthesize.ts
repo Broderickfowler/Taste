@@ -57,7 +57,7 @@ export function synthesizeExperience(
   const dining = domains.find((d) => d.domain === "dining");
   const brands = domains.find((d) => d.domain === "brands");
   const film = domains.find((d) => d.domain === "film");
-  const travel = domains.find((d) => d.domain === "travel");
+  const local = domains.find((d) => d.domain === "local");
 
   const artistOne = artistAt(music, 0, "a quiet soul and jazz mix");
   const artistTwo = artistAt(music, 1, "a complementary second artist");
@@ -65,7 +65,7 @@ export function synthesizeExperience(
   const dinnerTwo = placeAt(dining, 1, "a second nearby restaurant");
   const eveningPlace = placeAt(dining, 2, dinnerTwo);
   const filmOne = filmAt(film, 0, "a visually distinctive film");
-  const discovery = placeAt(dining, 3, placeAt(dining, 2, dinnerTwo));
+  const discovery = placeAt(local, 0, placeAt(dining, 3, dinnerTwo));
 
   const tagProfile = cleanTags(tasteTags);
   const profile =
@@ -150,7 +150,7 @@ export function synthesizeExperience(
       "TOMORROW",
       tomorrowAction[guest.stayIntent],
       "The next day is intentionally paced around the guest's selected stay style.",
-      evidence(top(dining, 4), top(travel, 2)),
+      evidence(top(local, 4), top(dining, 2)),
     ),
     unexpected: moment(
       "UNEXPECTED",
