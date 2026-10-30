@@ -1,7 +1,35 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { GuestBrief, HospitalityExperience, TasteAgentResult } from "@/lib/types";
+import type {
+  GuestBrief,
+  HospitalityExperience,
+  HotelCapability,
+  TasteAgentResult,
+} from "@/lib/types";
+
+const CAPABILITIES: HotelCapability[] = [
+  "Lighting",
+  "Welcome amenity",
+  "In-room audio",
+  "In-room streaming",
+  "Concierge",
+  "Restaurant reservations",
+  "Transport",
+  "Room service",
+  "Spa",
+];
+
+const BASE_CAPABILITIES: HotelCapability[] = [
+  "Lighting",
+  "Welcome amenity",
+  "In-room audio",
+  "In-room streaming",
+  "Concierge",
+  "Restaurant reservations",
+  "Transport",
+  "Room service",
+];
 
 const PRESETS: Array<{ label: string; guest: GuestBrief }> = [
   {
@@ -9,8 +37,17 @@ const PRESETS: Array<{ label: string; guest: GuestBrief }> = [
     guest: {
       propertyName: "Casa Forma",
       location: "Guadalajara, Mexico",
+      neighborhood: "",
       stayIntent: "Nightlife",
       interests: ["Bad Bunny", "A24", "Soho House"],
+      capabilities: [...BASE_CAPABILITIES],
+      constraints: {
+        dietary: "",
+        avoid: "",
+        budget: "Premium",
+        arrivalTime: "16:00",
+        checkoutTime: "12:00",
+      },
     },
   },
   {
@@ -18,8 +55,17 @@ const PRESETS: Array<{ label: string; guest: GuestBrief }> = [
     guest: {
       propertyName: "Casa Forma",
       location: "Guadalajara, Mexico",
+      neighborhood: "",
       stayIntent: "Rest",
       interests: ["Sade", "Studio Ghibli", "Muji"],
+      capabilities: [...BASE_CAPABILITIES],
+      constraints: {
+        dietary: "",
+        avoid: "loud crowded venues",
+        budget: "Premium",
+        arrivalTime: "15:00",
+        checkoutTime: "12:00",
+      },
     },
   },
 ];
@@ -33,52 +79,104 @@ const INTENTS: GuestBrief["stayIntent"][] = [
 ];
 
 type Moment = HospitalityExperience["room"];
+type FeedbackValue = "love" | "skip";
 
-function Evidence({ items }: { items: string[] }) {
-  if (!items.length) return null;
-  return (
-    <div className="evidenceChips">
-      {items.map((item) => <span key={item}>{item}</span>)}
-    </div>
-  );
-}
-
-function MomentCard({ moment, featured = false }: { moment: Moment; featured?: boolean }) {
+function MomentCard({
+  moment,
+  featured = false,
+  feedback,
+  onFeedback,
+}: {
+  moment: Moment;
+  featured?: boolean;
+  feedback?: FeedbackValue;
+  onFeedback: (value: FeedbackValue) => void;
+}) {
   return (
     <article className={featured ? "momentCard featuredMoment" : "momentCard"}>
       <div className="momentLabel">{moment.title}</div>
       <p className="momentAction">{moment.action}</p>
       <p className="momentWhy">{moment.rationale}</p>
+      <div className="momentFeedback">
+        <button
+          type="button"
+          className={feedback === "love" ? "selectedFeedback" : ""}
+          onClick={() => onFeedback("love")}
+        >
+          LOVE THIS
+        </button>
+        <button
+          type="button"
+          className={feedback === "skip" ? "selectedFeedback" : ""}
+          onClick={() => onFeedback("skip")}
+        >
+          NOT FOR ME
+        </button>
+      </div>
     </article>
   );
 }
 
 export default function Home() {
-  const [guest, setGuest] = useState<GuestBrief>({ ...PRESETS[1].guest });
+  const [guest, setGuest] = useState<GuestBrief>({
+    ...PRESETS[1].guest,
+    interests: [...PRESETS[1].guest.interests],
+    capabilities: [...PRESETS[1].guest.capabilities],
+    constraints: { ...PRESETS[1].guest.constraints },
+  });
   const [result, setResult] = useState<TasteAgentResult | null>(null);
   const [view, setView] = useState<"guest" | "staff">("guest");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<Record<string, FeedbackValue>>({});
 
   const canBuild = useMemo(
-    () => guest.interests.length === 3 && guest.interests.every((interest) => interest.trim().length > 0),
-    [guest.interests],
+    () =>
+      guest.propertyName.trim().length > 1 &&
+      guest.location.trim().length > 1 &&
+      guest.interests.length === 3 &&
+      guest.interests.every((interest) => interest.trim().length > 0) &&
+      guest.capabilities.length > 0,
+    [guest],
   );
+
+  function clearResult() {
+    setResult(null);
+    setError(null);
+    setFeedback({});
+  }
 
   function setInterest(index: number, value: string) {
     setGuest((current) => ({
       ...current,
-      interests: current.interests.map((interest, itemIndex) => itemIndex === index ? value : interest),
+      interests: current.interests.map((interest, itemIndex) =>
+        itemIndex === index ? value : interest,
+      ),
     }));
-    setResult(null);
-    setError(null);
+    clearResult();
   }
 
   function applyPreset(preset: GuestBrief) {
-    setGuest({ ...preset, interests: [...preset.interests] });
+    setGuest({
+      ...preset,
+      interests: [...preset.interests],
+      capabilities: [...preset.capabilities],
+      constraints: { ...preset.constraints },
+    });
     setResult(null);
     setView("guest");
     setError(null);
+    setFeedback({});
+  }
+
+  function toggleCapability(capability: HotelCapability) {
+    setGuest((current) => ({
+      ...current,
+      capabilities: current.capabilities.includes(capability)
+        ? current.capabilities.filter((item) => item !== capability)
+        : [...current.capabilities, capability],
+    }));
+    clearResult();
   }
 
   async function buildStay() {
@@ -86,6 +184,7 @@ export default function Home() {
     setLoading(true);
     setError(null);
     setView("guest");
+    setFeedback({});
 
     try {
       const response = await fetch("/api/analyze", {
@@ -94,10 +193,13 @@ export default function Home() {
         body: JSON.stringify(guest),
       });
       const payload = await response.json();
-      if (!response.ok) throw new Error(payload.error || "Taste could not build this stay.");
+      if (!response.ok)
+        throw new Error(payload.error || "Taste could not build this stay.");
       setResult(payload);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Taste could not build this stay.");
+      setError(
+        cause instanceof Error ? cause.message : "Taste could not build this stay.",
+      );
     } finally {
       setLoading(false);
     }
@@ -106,7 +208,9 @@ export default function Home() {
   return (
     <main className="pageShell">
       <header className="topbar">
-        <a className="brand" href="#top" aria-label="Taste home">Taste</a>
+        <a className="brand" href="#top" aria-label="Taste home">
+          Taste
+        </a>
         <div className="topbarMeta">
           <span>A stay that knows what you like.</span>
           <span className="qlooMark">Powered by Qloo</span>
@@ -115,16 +219,24 @@ export default function Home() {
 
       <section className="hero" id="top">
         <div className="heroCopy">
-          <p className="eyebrow">PERSONALIZED HOSPITALITY, POWERED BY CULTURAL TASTE</p>
-          <h1>The same hotel.<br /><em>Your version.</em></h1>
+          <p className="eyebrow">
+            PERSONALIZED HOSPITALITY, POWERED BY CULTURAL TASTE
+          </p>
+          <h1>
+            The same hotel.
+            <br />
+            <em>Your version.</em>
+          </h1>
           <p className="heroDek">
-            Pick three things you love. Taste turns them into real changes the hotel can make before you arrive.
+            Taste combines what the guest loves, where the hotel is, and what
+            the property can actually do.
           </p>
         </div>
         <div className="heroAside">
           <span className="heroIndex">01</span>
           <p>
-            The hotel is already chosen. Taste does not recommend another property. It changes the stay you are about to have.
+            Facts + taste + hotel capabilities become an executable stay, not
+            another recommendation list.
           </p>
         </div>
       </section>
@@ -133,13 +245,18 @@ export default function Home() {
         <div className="builderIntro">
           <div>
             <p className="eyebrow">BUILD THIS STAY</p>
-            <h2>Choose the hotel, then tell us three things you love.</h2>
+            <h2>Give Taste the guest context and the hotel reality.</h2>
           </div>
           <div className="presetGroup">
             <span>WATCH THE SAME HOTEL CHANGE</span>
             <div>
               {PRESETS.map((preset) => (
-                <button type="button" key={preset.label} onClick={() => applyPreset(preset.guest)} className="presetButton">
+                <button
+                  type="button"
+                  key={preset.label}
+                  onClick={() => applyPreset(preset.guest)}
+                  className="presetButton"
+                >
                   {preset.label}
                   <small>{preset.guest.interests.join(" / ")}</small>
                 </button>
@@ -155,11 +272,12 @@ export default function Home() {
               <input
                 value={guest.propertyName}
                 onChange={(event) => {
-                  setGuest((current) => ({ ...current, propertyName: event.target.value }));
-                  setResult(null);
-                  setError(null);
+                  setGuest((current) => ({
+                    ...current,
+                    propertyName: event.target.value,
+                  }));
+                  clearResult();
                 }}
-                aria-label="Hotel property name"
               />
             </label>
 
@@ -168,12 +286,28 @@ export default function Home() {
               <input
                 value={guest.location}
                 onChange={(event) => {
-                  setGuest((current) => ({ ...current, location: event.target.value }));
-                  setResult(null);
-                  setError(null);
+                  setGuest((current) => ({
+                    ...current,
+                    location: event.target.value,
+                  }));
+                  clearResult();
                 }}
-                aria-label="Hotel location"
                 placeholder="City, State or Country"
+              />
+            </label>
+
+            <label className="propertyField">
+              <span>NEIGHBORHOOD / AREA (OPTIONAL)</span>
+              <input
+                value={guest.neighborhood}
+                onChange={(event) => {
+                  setGuest((current) => ({
+                    ...current,
+                    neighborhood: event.target.value,
+                  }));
+                  clearResult();
+                }}
+                placeholder="Roma Norte, Downtown, Shoreditch..."
               />
             </label>
           </div>
@@ -198,20 +332,150 @@ export default function Home() {
                 <button
                   type="button"
                   key={intent}
-                  className={guest.stayIntent === intent ? "intent activeIntent" : "intent"}
+                  className={
+                    guest.stayIntent === intent
+                      ? "intent activeIntent"
+                      : "intent"
+                  }
                   onClick={() => {
                     setGuest((current) => ({ ...current, stayIntent: intent }));
-                    setResult(null);
-                    setError(null);
+                    clearResult();
                   }}
                 >
-                  <i />{intent}
+                  <i />
+                  {intent}
                 </button>
               ))}
             </div>
           </div>
 
-          <button className="buildButton" type="button" onClick={buildStay} disabled={loading || !canBuild}>
+          <div className="builderSubsection">
+            <span>WHAT CAN THIS HOTEL ACTUALLY CONTROL?</span>
+            <div className="capabilityGrid">
+              {CAPABILITIES.map((capability) => (
+                <button
+                  type="button"
+                  key={capability}
+                  className={
+                    guest.capabilities.includes(capability)
+                      ? "capability activeCapability"
+                      : "capability"
+                  }
+                  onClick={() => toggleCapability(capability)}
+                >
+                  {capability}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="builderSubsection">
+            <span>GUEST CONSTRAINTS</span>
+            <div className="constraintGrid">
+              <label>
+                <span>DIETARY / ALLERGIES</span>
+                <input
+                  value={guest.constraints.dietary}
+                  onChange={(event) => {
+                    setGuest((current) => ({
+                      ...current,
+                      constraints: {
+                        ...current.constraints,
+                        dietary: event.target.value,
+                      },
+                    }));
+                    clearResult();
+                  }}
+                  placeholder="Vegetarian, nut allergy..."
+                />
+              </label>
+
+              <label>
+                <span>AVOID</span>
+                <input
+                  value={guest.constraints.avoid}
+                  onChange={(event) => {
+                    setGuest((current) => ({
+                      ...current,
+                      constraints: {
+                        ...current.constraints,
+                        avoid: event.target.value,
+                      },
+                    }));
+                    clearResult();
+                  }}
+                  placeholder="Crowds, loud bars..."
+                />
+              </label>
+
+              <label>
+                <span>BUDGET</span>
+                <select
+                  value={guest.constraints.budget}
+                  onChange={(event) => {
+                    setGuest((current) => ({
+                      ...current,
+                      constraints: {
+                        ...current.constraints,
+                        budget: event.target.value as
+                          | "Flexible"
+                          | "Value"
+                          | "Premium",
+                      },
+                    }));
+                    clearResult();
+                  }}
+                >
+                  <option>Flexible</option>
+                  <option>Value</option>
+                  <option>Premium</option>
+                </select>
+              </label>
+
+              <label>
+                <span>ARRIVAL</span>
+                <input
+                  type="time"
+                  value={guest.constraints.arrivalTime}
+                  onChange={(event) => {
+                    setGuest((current) => ({
+                      ...current,
+                      constraints: {
+                        ...current.constraints,
+                        arrivalTime: event.target.value,
+                      },
+                    }));
+                    clearResult();
+                  }}
+                />
+              </label>
+
+              <label>
+                <span>CHECKOUT</span>
+                <input
+                  type="time"
+                  value={guest.constraints.checkoutTime}
+                  onChange={(event) => {
+                    setGuest((current) => ({
+                      ...current,
+                      constraints: {
+                        ...current.constraints,
+                        checkoutTime: event.target.value,
+                      },
+                    }));
+                    clearResult();
+                  }}
+                />
+              </label>
+            </div>
+          </div>
+
+          <button
+            className="buildButton"
+            type="button"
+            onClick={buildStay}
+            disabled={loading || !canBuild}
+          >
             <span>{loading ? "READING YOUR TASTE" : "BUILD MY STAY"}</span>
             <b>{loading ? "•••" : "↗"}</b>
           </button>
@@ -225,25 +489,62 @@ export default function Home() {
           <div className="promiseNumber">02</div>
           <div>
             <p className="eyebrow">WHAT TASTE DOES</p>
-            <h2>Your preferences become operations.</h2>
+            <h2>Taste becomes operational context.</h2>
           </div>
           <div className="promiseFlow">
-            <span>3 things you love</span><b>→</b><span>Qloo taste graph</span><b>→</b><span>Hotel actions</span>
+            <span>Guest + property</span>
+            <b>→</b>
+            <span>Qloo + locality</span>
+            <b>→</b>
+            <span>Executable stay</span>
           </div>
         </section>
       ) : (
         <section className="results">
+          <div className="interpretationPanel">
+            <div>
+              <span>LOCATION CHECK</span>
+              <strong>{result.locationContext.resolvedName}</strong>
+              <small>
+                Requested: {result.locationContext.requested} · strict local
+                boundary
+              </small>
+            </div>
+            <div className="interpretationSeeds">
+              <span>TASTE INTERPRETATION</span>
+              <div>
+                {result.interpretedInterests.map((item) => (
+                  <article key={item.id}>
+                    <small>{item.input}</small>
+                    <strong>{item.resolvedName}</strong>
+                    <em>{item.resolvedType}</em>
+                  </article>
+                ))}
+              </div>
+            </div>
+          </div>
+
           <div className="resultsTop">
             <div>
-              <p className="eyebrow">YOUR STAY / {result.guest.stayIntent.toUpperCase()}</p>
+              <p className="eyebrow">
+                YOUR STAY / {result.guest.stayIntent.toUpperCase()}
+              </p>
               <h2>{result.experience.headline}</h2>
               <p className="profileLine">{result.experience.profile}</p>
             </div>
             <div className="viewSwitch">
-              <button type="button" className={view === "guest" ? "activeView" : ""} onClick={() => setView("guest")}>
+              <button
+                type="button"
+                className={view === "guest" ? "activeView" : ""}
+                onClick={() => setView("guest")}
+              >
                 YOUR STAY
               </button>
-              <button type="button" className={view === "staff" ? "activeView" : ""} onClick={() => setView("staff")}>
+              <button
+                type="button"
+                className={view === "staff" ? "activeView" : ""}
+                onClick={() => setView("staff")}
+              >
                 VIEW HOTEL PREP
               </button>
             </div>
@@ -251,14 +552,43 @@ export default function Home() {
 
           {view === "guest" ? (
             <>
-              <div className="stayGrid">
-                <MomentCard moment={result.experience.room} featured />
-                <MomentCard moment={result.experience.arrival} />
-                <MomentCard moment={result.experience.welcome} />
-                <MomentCard moment={result.experience.dinner} />
-                <MomentCard moment={result.experience.after} />
-                <MomentCard moment={result.experience.tomorrow} />
+              <div className="itineraryPanel">
+                <span>YOUR STAY, IN TIME</span>
+                <div className="itineraryGrid">
+                  {result.experience.itinerary.map((item) => (
+                    <article key={item.time + item.title}>
+                      <b>{item.time}</b>
+                      <strong>{item.title}</strong>
+                      <p>{item.detail}</p>
+                    </article>
+                  ))}
+                </div>
               </div>
+
+              <div className="stayGrid">
+                {[
+                  result.experience.room,
+                  result.experience.arrival,
+                  result.experience.welcome,
+                  result.experience.dinner,
+                  result.experience.after,
+                  result.experience.tomorrow,
+                ].map((moment, index) => (
+                  <MomentCard
+                    key={moment.title}
+                    moment={moment}
+                    featured={index === 0}
+                    feedback={feedback[moment.title]}
+                    onFeedback={(value) =>
+                      setFeedback((current) => ({
+                        ...current,
+                        [moment.title]: value,
+                      }))
+                    }
+                  />
+                ))}
+              </div>
+
               <div className="unexpectedStrip">
                 <div>
                   <span>ONE THING YOU DIDN&apos;T ASK FOR</span>
@@ -282,23 +612,34 @@ export default function Home() {
                 {result.experience.staffPrep.map((section) => (
                   <article key={section.area}>
                     <span>{section.area}</span>
-                    <ul>{section.actions.map((action) => <li key={action}>{action}</li>)}</ul>
+                    <ul>
+                      {section.actions.map((action) => (
+                        <li key={action}>{action}</li>
+                      ))}
+                    </ul>
                   </article>
                 ))}
               </div>
               <div className="staffFoot">
-                <span>Prepared before arrival</span>
-                <p>Taste converts declared preferences into a practical handoff for rooms, F&amp;B, media and local recommendations.</p>
+                <span>ENABLED CAPABILITIES</span>
+                <p>{result.guest.capabilities.join(" · ")}</p>
               </div>
             </div>
           )}
 
           <details className="proof">
-            <summary><span>WHY THIS FITS YOU</span><b>Inspect Qloo evidence</b></summary>
+            <summary>
+              <span>WHY THIS FITS YOU</span>
+              <b>Inspect Qloo evidence</b>
+            </summary>
             <div className="proofBody">
               <div className="resolvedSeeds">
                 <span>YOU SAID</span>
-                <div>{result.resolvedSeeds.map((seed) => <b key={seed.id}>{seed.name}</b>)}</div>
+                <div>
+                  {result.resolvedSeeds.map((seed) => (
+                    <b key={seed.id}>{seed.name}</b>
+                  ))}
+                </div>
               </div>
 
               <div className="domainProofGrid">
@@ -315,7 +656,8 @@ export default function Home() {
                           <small>
                             {typeof entity.affinity === "number"
                               ? entity.affinity <= 1
-                                ? Math.round(entity.affinity * 100) + "% affinity"
+                                ? Math.round(entity.affinity * 100) +
+                                  "% affinity"
                                 : entity.affinity.toFixed(2)
                               : "Qloo recommendation"}
                           </small>
@@ -330,7 +672,9 @@ export default function Home() {
                 <span>AGENT TRACE</span>
                 {result.trace.map((step, index) => (
                   <div className="traceRow" key={index}>
-                    <b>{step.stage}</b><p>{step.detail}</p><em>{step.status}</em>
+                    <b>{step.stage}</b>
+                    <p>{step.detail}</p>
+                    <em>{step.status}</em>
                   </div>
                 ))}
               </div>
@@ -343,14 +687,26 @@ export default function Home() {
         <div>
           <span className="systemNumber">03</span>
           <p className="eyebrow">THE PRODUCT</p>
-          <h2>Hotels already ask what guests prefer. Taste tells them what to do with the answer.</h2>
+          <h2>
+            Taste understands the guest, the place, and what the hotel can
+            actually execute.
+          </h2>
         </div>
         <div className="systemFlow">
-          <div><span>GUEST TASTE</span><p>Three cultural references plus stay intent.</p></div>
+          <div>
+            <span>CONTEXT</span>
+            <p>Guest taste, hotel location, constraints and capabilities.</p>
+          </div>
           <b>→</b>
-          <div><span>QLOO</span><p>Cross-domain affinities, places, brands, music, film and travel.</p></div>
+          <div>
+            <span>QLOO</span>
+            <p>Cross-domain taste plus strict local place inventory.</p>
+          </div>
           <b>→</b>
-          <div><span>TASTE</span><p>Guest moments plus a staff-ready preparation card.</p></div>
+          <div>
+            <span>TASTE</span>
+            <p>Timed guest experience plus staff-ready actions.</p>
+          </div>
         </div>
       </section>
 
