@@ -1,555 +1,336 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { TasteAgentResult } from "@/lib/types";
+import type { GuestBrief, HospitalityExperience, TasteAgentResult } from "@/lib/types";
 
-const PRESETS = [
+const PRESETS: Array<{ label: string; guest: GuestBrief }> = [
   {
-    label: "Casa Forma",
-    brief: {
-      businessName: "Casa Forma",
-      businessType: "Boutique hotel",
+    label: "Guest 01",
+    guest: {
+      propertyName: "Casa Forma",
       location: "Guadalajara, Mexico",
-      audience: "Design-conscious American travelers ages 28–40",
-      goal: "Increase direct bookings and cultural relevance",
-      interests: "A24, Bad Bunny, Soho House",
+      stayIntent: "Nightlife",
+      interests: ["Bad Bunny", "A24", "Soho House"],
     },
   },
   {
-    label: "NOIR//FORM",
-    brief: {
-      businessName: "NOIR//FORM",
-      businessType: "Independent streetwear and fashion label",
-      location: "Los Angeles, California",
-      audience:
-        "Creative professionals, designers, musicians, photographers and fashion-forward consumers ages 22–34",
-      goal:
-        "Launch a limited capsule collection and build cultural relevance beyond traditional fashion advertising",
-      interests: "Frank Ocean, Arc'teryx, A24",
-    },
-  },
-  {
-    label: "Luna Social",
-    brief: {
-      businessName: "LUNA SOCIAL",
-      businessType: "Modern Mexican restaurant and late-night cocktail concept",
-      location: "Austin, Texas",
-      audience:
-        "Young professionals, creatives, food-driven travelers and nightlife consumers ages 25–38",
-      goal:
-        "Create a launch campaign that drives reservations, social sharing and late-night traffic",
-      interests: "Bad Bunny, Bottega Veneta, The Bear",
+    label: "Guest 02",
+    guest: {
+      propertyName: "Casa Forma",
+      location: "Guadalajara, Mexico",
+      stayIntent: "Rest",
+      interests: ["Sade", "Studio Ghibli", "Muji"],
     },
   },
 ];
 
-type BriefState = {
-  businessName: string;
-  businessType: string;
-  location: string;
-  audience: string;
-  goal: string;
-  interests: string;
-};
+const INTENTS: GuestBrief["stayIntent"][] = [
+  "Rest",
+  "Explore",
+  "Romance",
+  "Nightlife",
+  "Food",
+];
 
-const DEFAULT_BRIEF: BriefState = { ...PRESETS[0].brief };
+type Moment = HospitalityExperience["room"];
 
-function formatAffinity(value: number | null | undefined) {
-  if (typeof value !== "number") return "QLOO";
-  return value >= 0 && value <= 1
-    ? `${Math.round(value * 100)}%`
-    : value.toFixed(2);
+function Evidence({ items }: { items: string[] }) {
+  if (!items.length) return null;
+  return (
+    <div className="evidenceChips">
+      {items.map((item) => <span key={item}>{item}</span>)}
+    </div>
+  );
 }
 
-function affinityPercent(value: number | null | undefined) {
-  if (typeof value !== "number") return 50;
-  if (value >= 0 && value <= 1) return Math.round(value * 100);
-  return Math.max(8, Math.min(100, Math.round(value)));
-}
-
-function displayDomain(domain: string) {
-  if (domain === "dining") return "Local places";
-  return domain.charAt(0).toUpperCase() + domain.slice(1);
-}
-
-function formatDriverScore(value: number | null | undefined) {
-  if (typeof value !== "number") return null;
-  return value >= 0 && value <= 1
-    ? `${Math.round(value * 100)}%`
-    : value.toFixed(2);
+function MomentCard({ moment, featured = false }: { moment: Moment; featured?: boolean }) {
+  return (
+    <article className={featured ? "momentCard featuredMoment" : "momentCard"}>
+      <div className="momentLabel">{moment.title}</div>
+      <p className="momentAction">{moment.action}</p>
+      <p className="momentWhy">{moment.rationale}</p>
+      <Evidence items={moment.evidence} />
+    </article>
+  );
 }
 
 export default function Home() {
-  const [brief, setBrief] = useState<BriefState>({ ...DEFAULT_BRIEF });
+  const [guest, setGuest] = useState<GuestBrief>({ ...PRESETS[1].guest });
   const [result, setResult] = useState<TasteAgentResult | null>(null);
+  const [view, setView] = useState<"guest" | "staff">("guest");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const domainsWithData = useMemo(
-    () => result?.domains.filter((domain) => domain.entities.length) ?? [],
-    [result],
+  const canBuild = useMemo(
+    () => guest.interests.length === 3 && guest.interests.every((interest) => interest.trim().length > 0),
+    [guest.interests],
   );
 
-  const signalCount = useMemo(
-    () =>
-      domainsWithData.reduce(
-        (total, domain) => total + domain.entities.length,
-        0,
-      ),
-    [domainsWithData],
-  );
-
-  function applyPreset(preset: BriefState) {
-    setBrief({ ...preset });
+  function setInterest(index: number, value: string) {
+    setGuest((current) => ({
+      ...current,
+      interests: current.interests.map((interest, itemIndex) => itemIndex === index ? value : interest),
+    }));
     setResult(null);
     setError(null);
   }
 
-  async function analyze() {
+  function applyPreset(preset: GuestBrief) {
+    setGuest({ ...preset, interests: [...preset.interests] });
+    setResult(null);
+    setView("guest");
+    setError(null);
+  }
+
+  async function buildStay() {
+    if (!canBuild) return;
     setLoading(true);
     setError(null);
+    setView("guest");
 
     try {
       const response = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...brief,
-          interests: brief.interests
-            .split(",")
-            .map((value) => value.trim())
-            .filter(Boolean),
-        }),
+        body: JSON.stringify(guest),
       });
-
       const payload = await response.json();
-      if (!response.ok) throw new Error(payload.error || "Analysis failed.");
+      if (!response.ok) throw new Error(payload.error || "Taste could not build this stay.");
       setResult(payload);
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Analysis failed.");
+      setError(cause instanceof Error ? cause.message : "Taste could not build this stay.");
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <main className="appShell">
+    <main className="pageShell">
       <header className="topbar">
-        <div className="brandLockup">
-          <div className="wordmark">Taste</div>
-          <span>The overlap is the opportunity</span>
-        </div>
-        <div className="topmeta">
-          <span>Powered by Qloo</span>
-          <span className="statusDot">Live intelligence</span>
+        <a className="brand" href="#top" aria-label="Taste home">Taste</a>
+        <div className="topbarMeta">
+          <span>A stay that knows what you like.</span>
+          <span className="qlooMark">Powered by Qloo</span>
         </div>
       </header>
 
-      <section className="hero">
-        <div className="heroIntro">
-          <p className="eyebrow">Cultural intelligence for business decisions</p>
-          <h1>
-            The overlap is
-            <br />
-            <span>the opportunity.</span>
-          </h1>
+      <section className="hero" id="top">
+        <div className="heroCopy">
+          <p className="eyebrow">PERSONALIZED HOSPITALITY, POWERED BY CULTURAL TASTE</p>
+          <h1>The same hotel.<br /><em>Your version.</em></h1>
+          <p className="heroDek">
+            Pick three things you love. Taste turns them into real changes the hotel can make before you arrive.
+          </p>
         </div>
         <div className="heroAside">
+          <span className="heroIndex">01</span>
           <p>
-            Taste maps what your audience is connected to across culture, then shows which combinations are worth building around.
+            The hotel is already chosen. Taste does not recommend another property. It changes the stay you are about to have.
           </p>
-          <div className="heroProof">
-            <span>Qloo entity resolution</span>
-            <span>Cross-domain insights</span>
-            <span>Explainable evidence</span>
-          </div>
         </div>
       </section>
 
-      <section className="briefSection">
-        <div className="sectionIntro">
+      <section className="builderSection">
+        <div className="builderIntro">
           <div>
-            <span className="sectionKicker">01</span>
-            <p className="eyebrow">Build the cultural brief</p>
-            <h2>Start with the audience you want to understand.</h2>
+            <p className="eyebrow">WELCOME TO CASA FORMA</p>
+            <h2>Tell us three things you love.</h2>
           </div>
-
-          <div className="presetBlock">
-            <span>Demo presets</span>
-            <div className="presetRow">
+          <div className="presetGroup">
+            <span>WATCH THE SAME HOTEL CHANGE</span>
+            <div>
               {PRESETS.map((preset) => (
-                <button
-                  className="presetButton"
-                  key={preset.label}
-                  onClick={() => applyPreset(preset.brief)}
-                  type="button"
-                >
+                <button type="button" key={preset.label} onClick={() => applyPreset(preset.guest)} className="presetButton">
                   {preset.label}
+                  <small>{preset.guest.interests.join(" / ")}</small>
                 </button>
               ))}
             </div>
           </div>
         </div>
 
-        <div className="briefCard">
-          <div className="formGrid">
-            <label>
-              <span>Business</span>
-              <input
-                value={brief.businessName}
-                onChange={(event) =>
-                  setBrief({ ...brief, businessName: event.target.value })
-                }
-              />
-            </label>
-
-            <label>
-              <span>Business type</span>
-              <input
-                value={brief.businessType}
-                onChange={(event) =>
-                  setBrief({ ...brief, businessType: event.target.value })
-                }
-              />
-            </label>
-
-            <label>
-              <span>Location</span>
-              <input
-                value={brief.location}
-                onChange={(event) =>
-                  setBrief({ ...brief, location: event.target.value })
-                }
-              />
-            </label>
-
-            <label>
-              <span>Known cultural signals</span>
-              <input
-                value={brief.interests}
-                onChange={(event) =>
-                  setBrief({ ...brief, interests: event.target.value })
-                }
-              />
-            </label>
-
-            <label className="wideField">
-              <span>Target audience</span>
-              <textarea
-                value={brief.audience}
-                onChange={(event) =>
-                  setBrief({ ...brief, audience: event.target.value })
-                }
-              />
-            </label>
-
-            <label className="wideField">
-              <span>Business objective</span>
-              <textarea
-                value={brief.goal}
-                onChange={(event) =>
-                  setBrief({ ...brief, goal: event.target.value })
-                }
-              />
-            </label>
+        <div className="builderCard">
+          <div className="loveGrid">
+            {guest.interests.map((interest, index) => (
+              <label className="loveField" key={index}>
+                <span>{"0" + (index + 1)}</span>
+                <input
+                  value={interest}
+                  onChange={(event) => setInterest(index, event.target.value)}
+                  aria-label={"Thing you love " + (index + 1)}
+                />
+              </label>
+            ))}
           </div>
 
-          <div className="briefActions">
-            <p>
-              Known cultural signals are resolved to Qloo entities before any
-              strategy is generated.
-            </p>
-            <button
-              className="analyzeButton"
-              onClick={analyze}
-              disabled={loading}
-            >
-              <span>
-                {loading
-                  ? "Reading the culture..."
-                  : "Generate cultural intelligence"}
-              </span>
-              <b>↗</b>
-            </button>
+          <div className="intentBlock">
+            <span>WHAT KIND OF STAY?</span>
+            <div className="intentRow">
+              {INTENTS.map((intent) => (
+                <button
+                  type="button"
+                  key={intent}
+                  className={guest.stayIntent === intent ? "intent activeIntent" : "intent"}
+                  onClick={() => {
+                    setGuest((current) => ({ ...current, stayIntent: intent }));
+                    setResult(null);
+                    setError(null);
+                  }}
+                >
+                  <i />{intent}
+                </button>
+              ))}
+            </div>
           </div>
+
+          <button className="buildButton" type="button" onClick={buildStay} disabled={loading || !canBuild}>
+            <span>{loading ? "READING YOUR TASTE" : "BUILD MY STAY"}</span>
+            <b>{loading ? "•••" : "↗"}</b>
+          </button>
 
           {error ? <div className="errorBox">{error}</div> : null}
         </div>
       </section>
 
       {!result ? (
-        <section className="emptyState">
-          <div className="emptyOrb">
-            <span>Q</span>
-          </div>
+        <section className="demoPromise">
+          <div className="promiseNumber">02</div>
           <div>
-            <p className="eyebrow">Ready when you are</p>
-            <h2>One brief. Five cultural domains. One strategic point of view.</h2>
-            <p className="emptyCopy">
-              Run a brief to reveal Qloo-backed affinity signals, cultural
-              intersections, campaign opportunities and the evidence behind
-              each recommendation.
-            </p>
+            <p className="eyebrow">WHAT TASTE DOES</p>
+            <h2>Your preferences become operations.</h2>
+          </div>
+          <div className="promiseFlow">
+            <span>3 things you love</span><b>→</b><span>Qloo taste graph</span><b>→</b><span>Hotel actions</span>
           </div>
         </section>
       ) : (
         <section className="results">
-          <div className="resultsHero">
-            <div className="resultsNarrative">
-              <span className="sectionKicker">02</span>
-              <p className="eyebrow">Strategic read</p>
-              <h2>{result.strategy.campaignConcept.name}</h2>
-              <p className="campaignPremise">
-                {result.strategy.campaignConcept.premise}
-              </p>
+          <div className="resultsTop">
+            <div>
+              <p className="eyebrow">YOUR STAY / {result.guest.stayIntent.toUpperCase()}</p>
+              <h2>{result.experience.headline}</h2>
+              <p className="profileLine">{result.experience.profile}</p>
             </div>
-
-            <div className="proofRail">
-              <div className="proofStat">
-                <b>{result.resolvedSeeds.length}</b>
-                <span>Resolved seeds</span>
-              </div>
-              <div className="proofStat">
-                <b>{signalCount}</b>
-                <span>Live signals</span>
-              </div>
-              <div className="proofStat">
-                <b>{result.strategy.intersections.length}</b>
-                <span>Intersections</span>
-              </div>
-              <div className="proofStat accentStat">
-                <b>{result.tasteTags.length}</b>
-                <span>Taste tags</span>
-              </div>
+            <div className="viewSwitch">
+              <button type="button" className={view === "guest" ? "activeView" : ""} onClick={() => setView("guest")}>
+                YOUR STAY
+              </button>
+              <button type="button" className={view === "staff" ? "activeView" : ""} onClick={() => setView("staff")}>
+                VIEW HOTEL PREP
+              </button>
             </div>
           </div>
 
-          <div className="dnaPanel">
-            <div className="dnaCopy">
-              <p className="eyebrow">Cultural DNA</p>
-              <h3>The audience profile Qloo sees across the seed set.</h3>
-            </div>
-            <div className="dnaTags">
-              {result.strategy.culturalDNA.map((item) => (
-                <span key={item}>{item}</span>
-              ))}
-            </div>
-          </div>
-
-          <section className="resultSection">
-            <div className="resultSectionHeader">
-              <div>
-                <span className="sectionKicker">03</span>
-                <p className="eyebrow">Signal landscape</p>
-                <h3>What this audience is culturally adjacent to.</h3>
+          {view === "guest" ? (
+            <>
+              <div className="stayGrid">
+                <MomentCard moment={result.experience.room} featured />
+                <MomentCard moment={result.experience.arrival} />
+                <MomentCard moment={result.experience.welcome} />
+                <MomentCard moment={result.experience.dinner} />
+                <MomentCard moment={result.experience.after} />
+                <MomentCard moment={result.experience.tomorrow} />
               </div>
-              <p>
-                Each signal below comes directly from Qloo's cross-domain
-                intelligence layer.
-              </p>
-            </div>
-
-            <div className="domainGrid">
-              {domainsWithData.map((domain) => (
-                <article className="domainCard" key={domain.domain}>
-                  <div className="domainTop">
-                    <div>
-                      <span className="domainIndex">
-                        {String(
-                          domainsWithData.findIndex(
-                            (item) => item.domain === domain.domain,
-                          ) + 1,
-                        ).padStart(2, "0")}
-                      </span>
-                      <h4>{displayDomain(domain.domain)}</h4>
-                    </div>
-                    <span className="signalCount">
-                      {domain.entities.length} signals
-                    </span>
-                  </div>
-
-                  <p className="domainRationale">{domain.rationale}</p>
-
-                  <div className="entityList">
-                    {domain.entities.slice(0, 4).map((entity) => (
-                      <div className="entityCard" key={entity.id}>
-                        <div className="entityMain">
-                          <div>
-                            <strong>{entity.name}</strong>
-                            <small>
-                              {entity.tags.slice(0, 2).join(" / ") ||
-                                entity.type ||
-                                "Qloo entity"}
-                            </small>
-                          </div>
-                          <span>{formatAffinity(entity.affinity)}</span>
-                        </div>
-
-                        <div className="affinityTrack">
-                          <span
-                            style={{
-                              width: `${affinityPercent(entity.affinity)}%`,
-                            }}
-                          />
-                        </div>
-
-                        <details className="signalWhy">
-                          <summary>Why this signal</summary>
-                          <div className="signalWhyBody">
-                            <p>
-                              Qloo returned <strong>{entity.name}</strong> at{" "}
-                              <strong>{formatAffinity(entity.affinity)}</strong>{" "}
-                              from the combined cultural seed profile.
-                            </p>
-
-                            {entity.drivers?.length ? (
-                              entity.drivers.some(
-                                (driver) => typeof driver.score === "number",
-                              ) ? (
-                                <div className="driverBreakdown">
-                                  {entity.drivers.map((driver) => (
-                                    <span key={driver.id}>
-                                      {driver.name}
-                                      {formatDriverScore(driver.score)
-                                        ? ` / ${formatDriverScore(driver.score)}`
-                                        : ""}
-                                    </span>
-                                  ))}
-                                </div>
-                              ) : (
-                                <p className="evidenceNote">
-                                  Explainability references seed context:{" "}
-                                  {entity.drivers
-                                    .map((driver) => driver.name)
-                                    .join(", ")}
-                                  . The response does not expose a per-seed
-                                  contribution value.
-                                </p>
-                              )
-                            ) : (
-                              <p className="evidenceNote">
-                                Qloo returned this recommendation without
-                                seed-level explainability detail in this
-                                response.
-                              </p>
-                            )}
-                          </div>
-                        </details>
-                      </div>
-                    ))}
-                  </div>
-                </article>
-              ))}
-            </div>
-          </section>
-
-          <section className="resultSection intersectionSection">
-            <div className="resultSectionHeader">
-              <div>
-                <span className="sectionKicker">04</span>
-                <p className="eyebrow">Cultural intersections</p>
-                <h3>The combinations a generic audience profile would miss.</h3>
-              </div>
-              <p>
-                Taste combines independent Qloo signals into practical
-                opportunities without claiming causation.
-              </p>
-            </div>
-
-            <div className="intersectionGrid">
-              {result.strategy.intersections.map((intersection, index) => (
-                <article
-                  className={
-                    index === 0
-                      ? "intersectionCard featuredIntersection"
-                      : "intersectionCard"
-                  }
-                  key={intersection.id}
-                >
-                  <div className="intersectionMeta">
-                    <span>
-                      {displayDomain(intersection.domains[0])} ×{" "}
-                      {displayDomain(intersection.domains[1])}
-                    </span>
-                    <b>
-                      {intersection.explainabilityAvailable
-                        ? "Qloo evidence"
-                        : "Qloo co-signal"}
-                    </b>
-                  </div>
-
-                  <h4>
-                    {intersection.signals[0].name}
-                    <span> × </span>
-                    {intersection.signals[1].name}
-                  </h4>
-
-                  <p className="intersectionEvidence">
-                    {intersection.evidence}
-                  </p>
-
-                  <div className="opportunityBlock">
-                    <span>Business opportunity</span>
-                    <p>{intersection.opportunity}</p>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </section>
-
-          <section className="resultSection strategySection">
-            <div className="resultSectionHeader">
-              <div>
-                <span className="sectionKicker">05</span>
-                <p className="eyebrow">Strategy translation</p>
-                <h3>What the business can actually do with the signal.</h3>
-              </div>
-            </div>
-
-            <div className="strategyGrid">
-              {[
-                ["Creative direction", result.strategy.creativeDirection],
-                ["Partnerships", result.strategy.partnershipIdeas],
-                ["Content system", result.strategy.contentIdeas],
-                ["Experience ideas", result.strategy.experienceIdeas],
-              ].map(([title, items], index) => (
-                <article className="strategyCard" key={title as string}>
-                  <span className="strategyNumber">
-                    0{index + 1}
-                  </span>
-                  <h4>{title as string}</h4>
-                  <ol>
-                    {(items as string[]).map((item) => (
-                      <li key={item}>{item}</li>
-                    ))}
-                  </ol>
-                </article>
-              ))}
-            </div>
-          </section>
-
-          <details className="trace">
-            <summary>
-              <span>06 / Agent trace + Qloo evidence</span>
-              <b>Open technical proof</b>
-            </summary>
-            <div className="traceBody">
-              {result.trace.map((step, index) => (
-                <div className="traceRow" key={index}>
-                  <span>{step.stage}</span>
-                  <p>{step.detail}</p>
-                  <b>{step.status}</b>
+              <div className="unexpectedStrip">
+                <div>
+                  <span>ONE THING YOU DIDN&apos;T ASK FOR</span>
+                  <h3>{result.experience.unexpected.action}</h3>
                 </div>
-              ))}
+                <Evidence items={result.experience.unexpected.evidence} />
+              </div>
+            </>
+          ) : (
+            <div className="staffPanel">
+              <div className="staffHeader">
+                <div>
+                  <span>GUEST EXPERIENCE CARD</span>
+                  <h3>{result.experience.profile}</h3>
+                </div>
+                <div className="confidence">
+                  <span>CONFIDENCE</span>
+                  <b>{result.experience.confidence}</b>
+                </div>
+              </div>
+              <div className="prepGrid">
+                {result.experience.staffPrep.map((section) => (
+                  <article key={section.area}>
+                    <span>{section.area}</span>
+                    <ul>{section.actions.map((action) => <li key={action}>{action}</li>)}</ul>
+                  </article>
+                ))}
+              </div>
+              <div className="staffFoot">
+                <span>Prepared before arrival</span>
+                <p>Taste converts declared preferences into a practical handoff for rooms, F&amp;B, media and local recommendations.</p>
+              </div>
+            </div>
+          )}
+
+          <details className="proof">
+            <summary><span>WHY THIS FITS YOU</span><b>Inspect Qloo evidence</b></summary>
+            <div className="proofBody">
+              <div className="resolvedSeeds">
+                <span>YOU SAID</span>
+                <div>{result.resolvedSeeds.map((seed) => <b key={seed.id}>{seed.name}</b>)}</div>
+              </div>
+
+              <div className="domainProofGrid">
+                {result.domains.map((domain) => (
+                  <article key={domain.domain}>
+                    <div className="proofDomainHead">
+                      <span>{domain.domain.toUpperCase()}</span>
+                      <small>{domain.entities.length} QLOO SIGNALS</small>
+                    </div>
+                    <div className="proofEntities">
+                      {domain.entities.slice(0, 4).map((entity) => (
+                        <div key={entity.id}>
+                          <strong>{entity.name}</strong>
+                          <small>
+                            {typeof entity.affinity === "number"
+                              ? entity.affinity <= 1
+                                ? Math.round(entity.affinity * 100) + "% affinity"
+                                : entity.affinity.toFixed(2)
+                              : "Qloo recommendation"}
+                          </small>
+                        </div>
+                      ))}
+                    </div>
+                  </article>
+                ))}
+              </div>
+
+              <div className="traceBlock">
+                <span>AGENT TRACE</span>
+                {result.trace.map((step, index) => (
+                  <div className="traceRow" key={index}>
+                    <b>{step.stage}</b><p>{step.detail}</p><em>{step.status}</em>
+                  </div>
+                ))}
+              </div>
             </div>
           </details>
         </section>
       )}
 
+      <section className="systemSection">
+        <div>
+          <span className="systemNumber">03</span>
+          <p className="eyebrow">THE PRODUCT</p>
+          <h2>Hotels already ask what guests prefer. Taste tells them what to do with the answer.</h2>
+        </div>
+        <div className="systemFlow">
+          <div><span>GUEST TASTE</span><p>Three cultural references plus stay intent.</p></div>
+          <b>→</b>
+          <div><span>QLOO</span><p>Cross-domain affinities, places, brands, music, film and travel.</p></div>
+          <b>→</b>
+          <div><span>TASTE</span><p>Guest moments plus a staff-ready preparation card.</p></div>
+        </div>
+      </section>
+
       <footer>
         <div>Taste</div>
-        <p>Qloo maps the taste. Taste finds the overlap.</p>
-        <span>Qloo Agentic Hackathon / 2026</span>
+        <p>The same hotel. Your version.</p>
+        <span>Powered by Qloo</span>
       </footer>
     </main>
   );
