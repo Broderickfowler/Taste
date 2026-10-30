@@ -220,8 +220,6 @@ export async function getInsights(args: {
       args.entityType === "urn:entity:destination"
         ? args.location
         : undefined,
-    "filter.location.radius":
-      args.entityType === "urn:entity:place" && args.location ? 0 : undefined,
     take: args.take ?? 8,
   });
 
@@ -259,9 +257,4 @@ export async function qlooHealthcheck() {
     reachable: true,
     sampleCount: extractEntityCandidates(payload).length,
   };
-}
-
-
-export async function resolveLocation(query: string): Promise<QlooEntity | null> {
-  return searchEntity(query, "urn:entity:destination");
 }
