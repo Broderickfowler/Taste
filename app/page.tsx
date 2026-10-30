@@ -41,9 +41,18 @@ const PRESETS = [
       interests: "Bad Bunny, Bottega Veneta, The Bear",
     },
   },
-] as const;
+];
 
-const DEFAULT_BRIEF = PRESETS[0].brief;
+type BriefState = {
+  businessName: string;
+  businessType: string;
+  location: string;
+  audience: string;
+  goal: string;
+  interests: string;
+};
+
+const DEFAULT_BRIEF: BriefState = { ...PRESETS[0].brief };
 
 function formatAffinity(value: number | null | undefined) {
   if (typeof value !== "number") return "QLOO";
@@ -71,7 +80,7 @@ function formatDriverScore(value: number | null | undefined) {
 }
 
 export default function Home() {
-  const [brief, setBrief] = useState({ ...DEFAULT_BRIEF });
+  const [brief, setBrief] = useState<BriefState>({ ...DEFAULT_BRIEF });
   const [result, setResult] = useState<TasteAgentResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -90,7 +99,7 @@ export default function Home() {
     [domainsWithData],
   );
 
-  function applyPreset(preset: (typeof PRESETS)[number]["brief"]) {
+  function applyPreset(preset: BriefState) {
     setBrief({ ...preset });
     setResult(null);
     setError(null);
