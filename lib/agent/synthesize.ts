@@ -19,8 +19,12 @@ function evidence(...groups: QlooEntity[][]) {
   return Array.from(new Set(groups.flatMap(names))).slice(0, 4);
 }
 
-function firstName(domain: DomainResult | undefined, fallback: string) {
-  return domain?.entities[0]?.name || fallback;
+function cleanTags(tags: QlooTasteTag[]) {
+  return tags
+    .map((tag) => tag.name)
+    .filter(Boolean)
+    .filter((name, index, all) => all.indexOf(name) === index)
+    .slice(0, 3);
 }
 
 function moment(
@@ -32,12 +36,16 @@ function moment(
   return { title, action, rationale, evidence: evidenceItems };
 }
 
-function cleanTags(tags: QlooTasteTag[]) {
-  return tags
-    .map((tag) => tag.name)
-    .filter(Boolean)
-    .filter((name, index, all) => all.indexOf(name) === index)
-    .slice(0, 3);
+function placeAt(domain: DomainResult | undefined, index: number, fallback: string) {
+  return domain?.entities[index]?.name || fallback;
+}
+
+function artistAt(domain: DomainResult | undefined, index: number, fallback: string) {
+  return domain?.entities[index]?.name || fallback;
+}
+
+function filmAt(domain: DomainResult | undefined, index: number, fallback: string) {
+  return domain?.entities[index]?.name || fallback;
 }
 
 export function synthesizeExperience(
@@ -51,11 +59,13 @@ export function synthesizeExperience(
   const film = domains.find((d) => d.domain === "film");
   const travel = domains.find((d) => d.domain === "travel");
 
-  const leadArtist = firstName(music, "a low-key listening profile");
-  const leadPlace = firstName(dining, "a locally distinctive restaurant");
-  const leadBrand = firstName(brands, "a restrained design reference");
-  const leadFilm = firstName(film, "a cinematic in-room selection");
-  const leadDestination = firstName(travel, "a slower local discovery");
+  const artistOne = artistAt(music, 0, "a quiet soul and jazz mix");
+  const artistTwo = artistAt(music, 1, "a complementary second artist");
+  const dinnerOne = placeAt(dining, 0, "a nearby independent restaurant");
+  const dinnerTwo = placeAt(dining, 1, "a second nearby restaurant");
+  const eveningPlace = placeAt(dining, 2, dinnerTwo);
+  const filmOne = filmAt(film, 0, "a visually distinctive film");
+  const discovery = placeAt(dining, 3, placeAt(dining, 2, dinnerTwo));
 
   const tagProfile = cleanTags(tasteTags);
   const profile =
@@ -71,20 +81,36 @@ export function synthesizeExperience(
               ? "food-led / local / discovery-driven"
               : "curious / local / culture-led";
 
-  const intentRoom: Record<GuestBrief["stayIntent"], string> = {
-    Rest: "Use a quieter room preset with lower light, fewer visual interruptions and a slower arrival cadence.",
-    Explore: "Set the room up as a calm basecamp, with a concise neighborhood discovery card ready on arrival.",
-    Romance: "Use warm low light, a minimal two-person welcome setup and remove unnecessary visual clutter.",
-    Nightlife: "Keep the room crisp and energized, with a later-night service note and an easy return-to-room setup.",
-    Food: "Make the welcome food-forward, with local tasting cues and dinner details visible immediately.",
+  const roomAction: Record<GuestBrief["stayIntent"], string> = {
+    Rest: "Before arrival, close the blackout curtains halfway, set only the bedside lamps to warm light, turn the TV off, remove unnecessary tabletop materials, and place water beside the bed.",
+    Explore: "Keep the room visually calm, place water and a compact neighborhood card by the entry, leave the desk clear, and have a walking route ready for the first two hours after check-in.",
+    Romance: "Set warm low lighting, remove visual clutter, place two glasses and chilled sparkling water in the room, and keep the first hour after arrival free of nonessential service interruptions.",
+    Nightlife: "Use a brighter arrival light preset, place two bottles of water by the bed, make charging access obvious, and leave a late-return card with room-service and transport information.",
+    Food: "Keep the room minimal, place water and a small palate-cleansing snack at arrival, and have the dinner route and reservation details visible before the guest unpacks.",
   };
 
-  const intentAfter: Record<GuestBrief["stayIntent"], string> = {
-    Rest: "Skip the obvious nightlife recommendation. Prioritize a quiet, design-forward evening option or an early return.",
-    Explore: "Send the guest toward a neighborhood-led evening stop that feels local rather than tourist-default.",
-    Romance: "Recommend an intimate bar or late dessert stop with atmosphere over volume.",
-    Nightlife: "Recommend the strongest after-dark place adjacent to the guest's cultural profile, not simply the highest-rated club.",
-    Food: "Follow dinner with a bar, dessert or late-night bite that extends the same cultural profile.",
+  const welcomeAction: Record<GuestBrief["stayIntent"], string> = {
+    Rest: "Serve chilled mineral water with citrus and a small seasonal fruit plate. Keep the presentation quiet and minimal.",
+    Explore: "Offer a local coffee or tea with a small grab-and-go bite that the guest can take into the neighborhood.",
+    Romance: "Set out chilled sparkling water, two glasses, seasonal fruit, and a small piece of dark chocolate.",
+    Nightlife: "Offer cold sparkling water, citrus, and a light salty snack before the guest heads out for the evening.",
+    Food: "Serve a small local tasting bite with a nonalcoholic aperitif so the first food moment feels intentional without replacing dinner.",
+  };
+
+  const afterAction: Record<GuestBrief["stayIntent"], string> = {
+    Rest: "Keep the evening short. Recommend " + eveningPlace + " only if the guest wants to go back out, otherwise route them directly back for a quiet in-room wind-down.",
+    Explore: "Use " + eveningPlace + " as the optional final stop, then send the guest back through a walkable neighborhood route rather than adding another destination.",
+    Romance: "Use " + eveningPlace + " as the late stop and keep the recommendation focused on atmosphere, conversation, and a slower pace.",
+    Nightlife: "Send the guest to " + eveningPlace + " after dinner as the primary late-night move, then keep one transport option ready for the return to the hotel.",
+    Food: "After dinner, use " + eveningPlace + " as the second stop for a drink, dessert, or late bite instead of sending the guest to an unrelated nightlife venue.",
+  };
+
+  const tomorrowAction: Record<GuestBrief["stayIntent"], string> = {
+    Rest: "Start late. Offer a quiet breakfast window, then suggest " + discovery + " as the single optional outing rather than building a packed itinerary.",
+    Explore: "Build the morning around " + discovery + " as the anchor, with one nearby coffee stop and enough open time for the guest to wander.",
+    Romance: "Keep the morning unhurried and use " + discovery + " as the only planned stop before lunch.",
+    Nightlife: "Plan a slower start, late coffee, and " + discovery + " as the first daytime stop so the schedule respects the previous night.",
+    Food: "Use " + discovery + " as the daytime anchor, then add one nearby lunch recommendation from the same local area.",
   };
 
   return {
@@ -92,75 +118,73 @@ export function synthesizeExperience(
     headline: guest.propertyName + ", tuned to this guest.",
     room: moment(
       "ROOM",
-      intentRoom[guest.stayIntent],
-      "The room direction uses the guest's declared intent plus Qloo affinities around " + leadBrand + " and " + leadFilm + ".",
+      roomAction[guest.stayIntent],
+      "This changes the physical arrival conditions of the room before the guest walks in.",
       evidence(top(brands, 2), top(film, 2)),
     ),
     arrival: moment(
       "ARRIVAL",
-      "Build a short arrival listening sequence around " + leadArtist + ", then soften the energy to match a " + guest.stayIntent.toLowerCase() + " stay.",
-      "Music is not treated as decoration. It sets the emotional tempo of check-in and the first ten minutes in the room.",
+      "Queue a 20-minute arrival set beginning with " + artistOne + ", then transition into " + artistTwo + ". Keep the volume low enough that it feels like atmosphere, not programming.",
+      "The first few minutes should immediately feel different from a standard room handoff.",
       evidence(top(music, 3)),
     ),
     welcome: moment(
       "WELCOME",
-      guest.stayIntent === "Food"
-        ? "Offer a small locally sourced tasting bite or beverage that feels adjacent to " + leadPlace + " rather than a generic amenity."
-        : "Choose a small local welcome beverage or bite with the same restraint and cultural position as " + leadBrand + ".",
-      "The welcome moment connects the guest's cross-domain taste profile to something physical the hotel can actually prepare.",
+      welcomeAction[guest.stayIntent],
+      "The welcome is intentionally small, specific, and easy for hotel staff to prepare before check-in.",
       evidence(top(dining, 2), top(brands, 2)),
     ),
     dinner: moment(
       "DINNER",
-      "Lead with " + leadPlace + " as the primary dinner direction, then keep one backup from the same Qloo place set.",
-      "The recommendation is generated from the guest's combined cultural seeds and localized to the property market.",
+      "Recommend " + dinnerOne + " first. Keep " + dinnerTwo + " as the backup so staff can offer a real alternative without restarting the search.",
+      "The guest receives a specific first choice and one fallback, not a long recommendation list.",
       evidence(top(dining, 3)),
     ),
     after: moment(
       "AFTER",
-      intentAfter[guest.stayIntent],
-      "Use " + leadArtist + " and " + leadBrand + " as the cultural filter so the evening does not collapse into a generic top nightlife list.",
-      evidence(top(music, 2), top(brands, 2), top(dining, 1)),
+      afterAction[guest.stayIntent],
+      "The evening recommendation follows the pace of the stay instead of defaulting every guest to the same nightlife list.",
+      evidence(top(dining, 4), top(music, 2)),
     ),
     tomorrow: moment(
       "TOMORROW",
-      "Build a short local discovery around the sensibility Qloo connects to " + leadDestination + ", then pair it with one nearby place from the guest's dining profile.",
-      "The next-day plan is shaped by the guest's taste pattern, not a one-size-fits-all city itinerary.",
-      evidence(top(travel, 2), top(dining, 2)),
+      tomorrowAction[guest.stayIntent],
+      "The next day is intentionally paced around the guest's selected stay style.",
+      evidence(top(dining, 4), top(travel, 2)),
     ),
     unexpected: moment(
       "UNEXPECTED",
-      "Add one surprise cultural recommendation adjacent to " + leadFilm + " or " + leadBrand + " that the guest did not explicitly ask for.",
-      "This is the demo moment that shows Qloo reaching beyond declared preferences into adjacent taste.",
-      evidence(top(film, 2), top(brands, 2)),
+      "Leave a discreet in-room recommendation for " + filmOne + " as an optional wind-down choice, without making it part of the formal itinerary.",
+      "This is a small adjacent discovery the guest did not explicitly request.",
+      evidence(top(film, 3)),
     ),
     staffPrep: [
       {
         area: "ROOM",
         actions: [
-          intentRoom[guest.stayIntent],
-          "Use " + leadBrand + " as a reference for restraint and visual tone, without imitating the brand.",
+          roomAction[guest.stayIntent],
+          "Complete the setup before the guest reaches the room. Do not explain the personalization unless the guest asks.",
         ],
       },
       {
         area: "F&B",
         actions: [
-          "Prepare one welcome beverage or bite adjacent to " + leadPlace + ".",
-          "Keep " + (names(top(dining, 2)).join(" and ") || "two local options") + " ready for concierge handoff.",
+          welcomeAction[guest.stayIntent],
+          "Keep " + dinnerOne + " and " + dinnerTwo + " ready as the concierge's two dinner choices.",
         ],
       },
       {
         area: "MEDIA",
         actions: [
-          "Arrival audio direction: " + leadArtist + " and adjacent artists from the Qloo set.",
-          "In-room film direction: " + leadFilm + " or a culturally adjacent title.",
+          "Arrival audio: begin with " + artistOne + " and move into " + artistTwo + ".",
+          "Optional in-room film: " + filmOne + ".",
         ],
       },
       {
         area: "LOCAL",
         actions: [
-          "Primary evening recommendation: " + leadPlace + ".",
-          "Next-day discovery should reflect the guest's " + profile.toLowerCase() + " profile.",
+          "Dinner: " + dinnerOne + ". Backup: " + dinnerTwo + ".",
+          "Later or next-day option: " + discovery + ".",
         ],
       },
     ],
