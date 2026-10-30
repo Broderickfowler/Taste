@@ -23,9 +23,9 @@ const DOMAIN_CONFIG: Record<CulturalDomain, Omit<DomainPlan, "domain">> = {
     entityType: "urn:entity:movie",
     rationale: "Film affinities provide a cinematic language for atmosphere, pacing and in-room recommendations.",
   },
-  travel: {
-    entityType: "urn:entity:destination",
-    rationale: "Travel affinities reveal the kinds of places, pace and discovery patterns the guest gravitates toward.",
+  local: {
+    entityType: "urn:entity:place",
+    rationale: "Local inventory turns the hotel location into nearby culturally relevant places and experiences.",
   },
 };
 
@@ -34,14 +34,14 @@ export function planDomains(guest: GuestBrief): DomainPlan[] {
 
   const priority: CulturalDomain[] =
     intent === "food"
-      ? ["dining", "brands", "music", "film", "travel"]
+      ? ["dining", "local", "brands", "music", "film"]
       : intent === "nightlife"
-        ? ["music", "dining", "brands", "film", "travel"]
+        ? ["music", "dining", "local", "brands", "film"]
         : intent === "rest"
-          ? ["brands", "film", "music", "dining", "travel"]
+          ? ["brands", "film", "music", "local", "dining"]
           : intent === "romance"
-            ? ["dining", "music", "film", "brands", "travel"]
-            : ["travel", "dining", "brands", "music", "film"];
+            ? ["dining", "music", "local", "film", "brands"]
+            : ["local", "dining", "brands", "music", "film"];
 
   return priority.map((domain) => ({
     domain,
