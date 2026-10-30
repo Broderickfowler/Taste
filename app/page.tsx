@@ -49,7 +49,6 @@ function MomentCard({ moment, featured = false }: { moment: Moment; featured?: b
       <div className="momentLabel">{moment.title}</div>
       <p className="momentAction">{moment.action}</p>
       <p className="momentWhy">{moment.rationale}</p>
-      <Evidence items={moment.evidence} />
     </article>
   );
 }
@@ -236,7 +235,6 @@ export default function Home() {
                   <span>ONE THING YOU DIDN&apos;T ASK FOR</span>
                   <h3>{result.experience.unexpected.action}</h3>
                 </div>
-                <Evidence items={result.experience.unexpected.evidence} />
               </div>
             </>
           ) : (
