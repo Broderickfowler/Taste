@@ -3,7 +3,7 @@ export type CulturalDomain =
   | "dining"
   | "brands"
   | "film"
-  | "travel";
+  | "local";
 
 export type StayIntent = "Rest" | "Explore" | "Romance" | "Nightlife" | "Food";
 
