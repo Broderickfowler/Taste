@@ -84,6 +84,7 @@ export async function runTasteAgent(
         entityType: plan.entityType,
         seedIds,
         location: guest.location,
+        tags: plan.domain === "dining" ? "restaurant" : undefined,
         take: 8,
       })).map((entity) => ({
         ...entity,
