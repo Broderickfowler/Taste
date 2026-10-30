@@ -20,7 +20,7 @@ export async function runTasteAgent(
 
   trace.push({
     stage: "PLAN",
-    detail: \`Building a ${guest.stayIntent.toLowerCase()} stay for ${guest.propertyName} in ${guest.location}.\`,
+    detail: "Building a " + guest.stayIntent.toLowerCase() + " stay for " + guest.propertyName + " in " + guest.location + ".",
     status: "complete",
   });
 
@@ -31,14 +31,14 @@ export async function runTasteAgent(
         resolvedSeeds.push(entity);
         trace.push({
           stage: "RESOLVE",
-          detail: \`Resolved "${interest}" to Qloo entity ${entity.name} (${entity.id}).\`,
+          detail: 'Resolved "' + interest + '" to Qloo entity ' + entity.name + " (" + entity.id + ").",
           status: "complete",
         });
       } else {
         unresolvedSeeds.push(interest);
         trace.push({
           stage: "RESOLVE",
-          detail: \`Qloo returned no usable entity for "${interest}". It was not guessed or replaced.\`,
+          detail: 'Qloo returned no usable entity for "' + interest + '". It was not guessed or replaced.',
           status: "warning",
         });
       }
@@ -46,7 +46,7 @@ export async function runTasteAgent(
       unresolvedSeeds.push(interest);
       trace.push({
         stage: "RESOLVE",
-        detail: \`Could not resolve "${interest}": ${error instanceof Error ? error.message : "unknown error"}\`,
+        detail: 'Could not resolve "' + interest + '": ' + (error instanceof Error ? error.message : "unknown error"),
         status: "warning",
       });
     }
@@ -67,13 +67,13 @@ export async function runTasteAgent(
     tasteTags = await getTasteTags(seedIds, 12);
     trace.push({
       stage: "PROFILE",
-      detail: \`Received ${tasteTags.length} Qloo taste tags for the combined guest profile.\`,
+      detail: "Received " + tasteTags.length + " Qloo taste tags for the combined guest profile.",
       status: tasteTags.length ? "complete" : "warning",
     });
   } catch (error) {
     trace.push({
       stage: "PROFILE",
-      detail: \`Taste-tag analysis unavailable: ${error instanceof Error ? error.message : "Qloo request failed"}\`,
+      detail: "Taste-tag analysis unavailable: " + (error instanceof Error ? error.message : "Qloo request failed"),
       status: "warning",
     });
   }
@@ -99,7 +99,7 @@ export async function runTasteAgent(
 
       trace.push({
         stage: "ADAPT",
-        detail: \`${plan.domain}: received ${entities.length} Qloo recommendations to shape the stay.\`,
+        detail: plan.domain + ": received " + entities.length + " Qloo recommendations to shape the stay.",
         status: entities.length ? "complete" : "warning",
       });
     } catch (error) {
@@ -112,7 +112,7 @@ export async function runTasteAgent(
 
       trace.push({
         stage: "ADAPT",
-        detail: \`${plan.domain}: ${error instanceof Error ? error.message : "Qloo request failed"}\`,
+        detail: plan.domain + ": " + (error instanceof Error ? error.message : "Qloo request failed"),
         status: "warning",
       });
     }
