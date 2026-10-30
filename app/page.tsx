@@ -132,8 +132,8 @@ export default function Home() {
       <section className="builderSection">
         <div className="builderIntro">
           <div>
-            <p className="eyebrow">WELCOME TO CASA FORMA</p>
-            <h2>Tell us three things you love.</h2>
+            <p className="eyebrow">BUILD THIS STAY</p>
+            <h2>Choose the hotel, then tell us three things you love.</h2>
           </div>
           <div className="presetGroup">
             <span>WATCH THE SAME HOTEL CHANGE</span>
@@ -149,6 +149,35 @@ export default function Home() {
         </div>
 
         <div className="builderCard">
+          <div className="propertyGrid">
+            <label className="propertyField">
+              <span>PROPERTY</span>
+              <input
+                value={guest.propertyName}
+                onChange={(event) => {
+                  setGuest((current) => ({ ...current, propertyName: event.target.value }));
+                  setResult(null);
+                  setError(null);
+                }}
+                aria-label="Hotel property name"
+              />
+            </label>
+
+            <label className="propertyField">
+              <span>HOTEL LOCATION</span>
+              <input
+                value={guest.location}
+                onChange={(event) => {
+                  setGuest((current) => ({ ...current, location: event.target.value }));
+                  setResult(null);
+                  setError(null);
+                }}
+                aria-label="Hotel location"
+                placeholder="City, State or Country"
+              />
+            </label>
+          </div>
+
           <div className="loveGrid">
             {guest.interests.map((interest, index) => (
               <label className="loveField" key={index}>
