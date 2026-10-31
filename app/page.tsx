@@ -3,6 +3,13 @@
 import { useMemo, useState } from "react";
 import type { GuestBrief, HospitalityExperience, TasteAgentResult } from "@/lib/types";
 
+const VISUALS = {
+  hero: "https://images.unsplash.com/photo-1741852197045-cc35920a3aa0?auto=format&fit=crop&q=85&w=1800",
+  room: "https://images.unsplash.com/photo-1790419683322-b08a7050c424?auto=format&fit=crop&q=85&w=1400",
+  dining: "https://images.unsplash.com/photo-1741852197045-cc35920a3aa0?auto=format&fit=crop&q=85&w=1400",
+  rest: "https://images.unsplash.com/photo-1777383504729-bd8364d28de8?auto=format&fit=crop&q=85&w=1400",
+};
+
 const PRESETS: Array<{ label: string; guest: GuestBrief }> = [
   {
     label: "Guest 01",
@@ -44,11 +51,21 @@ function Evidence({ items }: { items: string[] }) {
 }
 
 function MomentCard({ moment, featured = false }: { moment: Moment; featured?: boolean }) {
+  const image =
+    moment.title === "ROOM"
+      ? VISUALS.room
+      : moment.title === "DINNER" || moment.title === "WELCOME"
+        ? VISUALS.dining
+        : VISUALS.rest;
+
   return (
     <article className={featured ? "momentCard featuredMoment" : "momentCard"}>
-      <div className="momentLabel">{moment.title}</div>
-      <p className="momentAction">{moment.action}</p>
-      <p className="momentWhy">{moment.rationale}</p>
+      <div className="momentImage" style={{ backgroundImage: `url(${image})` }} />
+      <div className="momentBody">
+        <div className="momentLabel">{moment.title}</div>
+        <p className="momentAction">{moment.action}</p>
+        <p className="momentWhy">{moment.rationale}</p>
+      </div>
     </article>
   );
 }
@@ -121,7 +138,7 @@ export default function Home() {
       </header>
 
       <section className="hero" id="top">
-        <div className="heroVisual">
+        <div className="heroVisual" style={{ backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0.04), rgba(0,0,0,0.62)), url(${VISUALS.hero})` }}>
           <div className="heroVisualInner">
             <span>PERSONALIZED HOSPITALITY</span>
             <strong>CULTURE TURNS<br />STAYS INTO STORIES.</strong>
@@ -140,6 +157,18 @@ export default function Home() {
             The hotel is already chosen. Taste translates cultural preference into a more personal room, arrival, dining, evening and local experience.
           </p>
         </div>
+      </section>
+
+      <section className="visualStrip" aria-label="Taste visual language">
+        <article className="visualStripLarge" style={{ backgroundImage: `url(${VISUALS.hero})` }}>
+          <div><span>LOCAL</span><strong>Place matters.</strong></div>
+        </article>
+        <article style={{ backgroundImage: `url(${VISUALS.room})` }}>
+          <div><span>ROOM</span><strong>Arrival becomes atmosphere.</strong></div>
+        </article>
+        <article style={{ backgroundImage: `url(${VISUALS.dining})` }}>
+          <div><span>DINING</span><strong>Culture becomes a recommendation.</strong></div>
+        </article>
       </section>
 
       <section className="builderSection">
