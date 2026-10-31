@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import type { GuestBrief, HospitalityExperience, TasteAgentResult } from "@/lib/types";
 
 const VISUALS = {
-  hero: "https://images.unsplash.com/photo-1741852197045-cc35920a3aa0?auto=format&fit=crop&q=85&w=1800",
+  hero: "https://images.unsplash.com/photo-1599624893198-d000bdd8bef8?auto=format&fit=crop&q=85&w=2200",
   room: "https://images.unsplash.com/photo-1790419683322-b08a7050c424?auto=format&fit=crop&q=85&w=1400",
   dining: "https://images.unsplash.com/photo-1741852197045-cc35920a3aa0?auto=format&fit=crop&q=85&w=1400",
   rest: "https://images.unsplash.com/photo-1777383504729-bd8364d28de8?auto=format&fit=crop&q=85&w=1400",
@@ -138,37 +138,17 @@ export default function Home() {
       </header>
 
       <section className="hero" id="top">
-        <div className="heroVisual" style={{ backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0.04), rgba(0,0,0,0.62)), url(${VISUALS.hero})` }}>
-          <div className="heroVisualInner">
-            <span>PERSONALIZED HOSPITALITY</span>
-            <strong>CULTURE TURNS<br />STAYS INTO STORIES.</strong>
-          </div>
-        </div>
+        <div
+          className="heroVisual"
+          style={{ backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0.02), rgba(0,0,0,0.28)), url(${VISUALS.hero})` }}
+          aria-label="Guadalajara city view"
+        />
         <div className="heroCopy">
-          <p className="eyebrow">PERSONALIZED HOSPITALITY, POWERED BY CULTURAL TASTE</p>
           <h1>The same hotel.<br /><em>Your version.</em></h1>
           <p className="heroDek">
-            Pick three things you love. Taste turns them into real changes the hotel can make before you arrive.
+            Pick three things you love. Taste turns them into a stay designed around you.
           </p>
         </div>
-        <div className="heroAside">
-          <span className="heroIndex">01 / YOUR TASTE</span>
-          <p>
-            The hotel is already chosen. Taste translates cultural preference into a more personal room, arrival, dining, evening and local experience.
-          </p>
-        </div>
-      </section>
-
-      <section className="visualStrip" aria-label="Taste visual language">
-        <article className="visualStripLarge" style={{ backgroundImage: `url(${VISUALS.hero})` }}>
-          <div><span>LOCAL</span><strong>Place matters.</strong></div>
-        </article>
-        <article style={{ backgroundImage: `url(${VISUALS.room})` }}>
-          <div><span>ROOM</span><strong>Arrival becomes atmosphere.</strong></div>
-        </article>
-        <article style={{ backgroundImage: `url(${VISUALS.dining})` }}>
-          <div><span>DINING</span><strong>Culture becomes a recommendation.</strong></div>
-        </article>
       </section>
 
       <section className="builderSection">
