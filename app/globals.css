@@ -1580,3 +1580,81 @@ footer div {
     border-radius: 0 0 80px 0;
   }
 }
+
+
+/* Final presentation color pass */
+:root {
+  --sage: #7f8d72;
+  --terracotta: #b86f52;
+  --butter: #dfbd74;
+  --wine: #6f403d;
+  --sky: #6e8796;
+}
+
+.builderCard {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.86), rgba(248,240,226,0.92));
+  border-color: #d8cbb8;
+}
+
+.propertyField > span,
+.intentBlock > span,
+.presetGroup > span {
+  color: #80684c;
+}
+
+.intent:nth-child(1) i { background: var(--sage); border-color: var(--sage); }
+.intent:nth-child(2) i { background: var(--sky); border-color: var(--sky); }
+.intent:nth-child(3) i { background: #c58e88; border-color: #c58e88; }
+.intent:nth-child(4) i { background: var(--wine); border-color: var(--wine); }
+.intent:nth-child(5) i { background: var(--terracotta); border-color: var(--terracotta); }
+
+.intent.activeIntent i {
+  background: var(--butter);
+  border-color: var(--butter);
+}
+
+.buildButton {
+  background: #1b1b19;
+  box-shadow: inset 0 -2px 0 rgba(255,255,255,0.08);
+}
+
+.momentCard:nth-child(2) { border-top: 5px solid var(--sky); }
+.momentCard:nth-child(3) { border-top: 5px solid var(--butter); }
+.momentCard:nth-child(4) { border-top: 5px solid var(--terracotta); }
+.momentCard:nth-child(5) { border-top: 5px solid var(--wine); }
+.momentCard:nth-child(6) { border-top: 5px solid var(--sage); }
+
+.featuredMoment {
+  border-top: 0;
+}
+
+.unexpectedStrip {
+  background: linear-gradient(135deg, #e7d2aa, #d8b071);
+}
+
+.domainProofGrid article:nth-child(1) { background: #eef1e9; }
+.domainProofGrid article:nth-child(2) { background: #f6eadf; }
+.domainProofGrid article:nth-child(3) { background: #f0ebe3; }
+.domainProofGrid article:nth-child(4) { background: #e9eef0; }
+.domainProofGrid article:nth-child(5) { background: #f1e8e6; }
+
+.profileLine {
+  color: #9f6e36;
+}
+
+.qlooMark {
+  background: #efe4cf;
+  border-color: #d9c7a8;
+}
+
+.presetButton:hover {
+  background: #6f403d;
+  border-color: #6f403d;
+}
+
+.staffPanel {
+  background:
+    radial-gradient(circle at 90% 0%, rgba(184,111,82,0.16), transparent 22rem),
+    #161615;
+}
