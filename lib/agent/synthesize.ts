@@ -81,19 +81,16 @@ export function synthesizeExperience(
   const filmOne = filmAt(film, 0, "a visually distinctive film");
   const discovery = placeAt(local, 0, placeAt(dining, 3, dinnerTwo));
 
-  const tagProfile = cleanTags(tasteTags);
   const profile =
-    tagProfile.length > 0
-      ? tagProfile.join(" / ")
-      : guest.stayIntent === "Rest"
-        ? "quiet / design-led / restorative"
-        : guest.stayIntent === "Nightlife"
-          ? "social / energetic / after-dark"
-          : guest.stayIntent === "Romance"
-            ? "intimate / sensory / unhurried"
-            : guest.stayIntent === "Food"
-              ? "food-led / local / discovery-driven"
-              : "curious / local / culture-led";
+    guest.stayIntent === "Rest"
+      ? "quiet / design-led / restorative"
+      : guest.stayIntent === "Nightlife"
+        ? "social / energetic / after-dark"
+        : guest.stayIntent === "Romance"
+          ? "intimate / sensory / unhurried"
+          : guest.stayIntent === "Food"
+            ? "food-led / local / discovery-driven"
+            : "curious / local / culture-led";
 
   const roomAction: Record<GuestBrief["stayIntent"], string> = {
     Rest: "Before arrival, close the blackout curtains halfway, set only the bedside lamps to warm light, turn the TV off, remove unnecessary tabletop materials, and place water beside the bed.",
