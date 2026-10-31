@@ -6,8 +6,11 @@ import type { GuestBrief, HospitalityExperience, TasteAgentResult } from "@/lib/
 const VISUALS = {
   hero: "https://images.unsplash.com/photo-1599624893198-d000bdd8bef8?auto=format&fit=crop&q=85&w=2200",
   room: "https://images.unsplash.com/photo-1790419683322-b08a7050c424?auto=format&fit=crop&q=85&w=1400",
-  dining: "https://images.unsplash.com/photo-1741852197045-cc35920a3aa0?auto=format&fit=crop&q=85&w=1400",
-  rest: "https://images.unsplash.com/photo-1777383504729-bd8364d28de8?auto=format&fit=crop&q=85&w=1400",
+  welcome: "https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&q=85&w=1400",
+  dinner: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&q=85&w=1400",
+  after: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&q=85&w=1400",
+  tomorrow: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&q=85&w=1400",
+  arrival: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?auto=format&fit=crop&q=85&w=1400",
 };
 
 const PRESETS: Array<{ label: string; guest: GuestBrief }> = [
@@ -54,9 +57,15 @@ function MomentCard({ moment, featured = false }: { moment: Moment; featured?: b
   const image =
     moment.title === "ROOM"
       ? VISUALS.room
-      : moment.title === "DINNER" || moment.title === "WELCOME"
-        ? VISUALS.dining
-        : VISUALS.rest;
+      : moment.title === "WELCOME"
+        ? VISUALS.welcome
+        : moment.title === "DINNER"
+          ? VISUALS.dinner
+          : moment.title === "AFTER"
+            ? VISUALS.after
+            : moment.title === "TOMORROW"
+              ? VISUALS.tomorrow
+              : VISUALS.arrival;
 
   return (
     <article className={featured ? "momentCard featuredMoment" : "momentCard"}>
@@ -348,14 +357,7 @@ export default function Home() {
                 ))}
               </div>
 
-              <div className="traceBlock">
-                <span>AGENT TRACE</span>
-                {result.trace.map((step, index) => (
-                  <div className="traceRow" key={index}>
-                    <b>{step.stage}</b><p>{step.detail}</p><em>{step.status}</em>
-                  </div>
-                ))}
-              </div>
+
             </div>
           </details>
         </section>
