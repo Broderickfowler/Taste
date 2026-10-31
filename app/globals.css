@@ -1087,3 +1087,324 @@ footer span {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Taste Brand Identity Refresh */
+:root {
+  --paper: #f8f4ed;
+  --surface: #fffdf8;
+  --ink: #111111;
+  --muted: #6d675f;
+  --line: #ded7cc;
+  --soft: #eee8de;
+  --gold: #c9a05b;
+  --dark: #171717;
+  --blue: #171717;
+  --acid: #c9a05b;
+}
+
+body {
+  background: var(--paper);
+  font-family: Inter, Arial, Helvetica, sans-serif;
+}
+
+.pageShell {
+  width: min(100% - 40px, 1480px);
+}
+
+.topbar {
+  min-height: 88px;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: rgba(248,244,237,0.94);
+  backdrop-filter: blur(16px);
+}
+
+.brandLockup {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.brand {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 40px;
+  font-weight: 500;
+  letter-spacing: -2px;
+}
+
+.brandTagline {
+  color: var(--muted);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.mainNav {
+  display: flex;
+  gap: 28px;
+  align-items: center;
+}
+
+.mainNav a {
+  color: var(--ink);
+  text-decoration: none;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  padding: 10px 0;
+  border-bottom: 1px solid transparent;
+}
+
+.mainNav a:hover {
+  border-bottom-color: var(--ink);
+}
+
+.qlooMark {
+  border-radius: 999px;
+  background: transparent;
+}
+
+.hero {
+  grid-template-columns: 0.72fr 1.28fr 300px;
+  min-height: 690px;
+  gap: 36px;
+  align-items: stretch;
+}
+
+.heroVisual {
+  min-height: 560px;
+  border-radius: 0 0 140px 0;
+  overflow: hidden;
+  position: relative;
+  background:
+    linear-gradient(180deg, rgba(0,0,0,0.02), rgba(0,0,0,0.66)),
+    linear-gradient(135deg, #6a4a2d 0%, #15120f 65%, #0d0d0c 100%);
+}
+
+.heroVisual::before {
+  content: "";
+  position: absolute;
+  inset: 12% 10% 28% 18%;
+  border: 1px solid rgba(255,255,255,0.18);
+  border-radius: 32px;
+  transform: rotate(-3deg);
+}
+
+.heroVisualInner {
+  position: absolute;
+  left: 28px;
+  right: 28px;
+  bottom: 34px;
+  color: white;
+}
+
+.heroVisualInner span {
+  display: block;
+  margin-bottom: 18px;
+  font-size: 8px;
+  letter-spacing: 2px;
+  color: rgba(255,255,255,0.62);
+}
+
+.heroVisualInner strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 32px;
+  line-height: 1.02;
+  font-weight: 400;
+}
+
+.heroCopy {
+  align-self: center;
+}
+
+.hero h1 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(76px, 8vw, 126px);
+  font-weight: 400;
+  letter-spacing: -0.065em;
+  line-height: 0.9;
+}
+
+.hero h1 em {
+  color: var(--ink);
+  font-style: italic;
+}
+
+.heroDek {
+  color: #4b463f;
+}
+
+.heroAside {
+  align-self: end;
+  border-top-color: var(--line);
+}
+
+.builderSection {
+  border-top: 1px solid var(--line);
+}
+
+.builderIntro h2,
+.resultsTop h2,
+.systemSection h2,
+.demoPromise h2 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 400;
+  letter-spacing: -0.045em;
+}
+
+.builderCard {
+  background: var(--surface);
+  border-radius: 22px;
+  box-shadow: none;
+}
+
+.propertyField input,
+.loveField input {
+  background: #fffefb;
+}
+
+.loveField input {
+  border-radius: 14px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 400;
+}
+
+.intent,
+.presetButton,
+.viewSwitch,
+.momentCard,
+.domainProofGrid article,
+.promiseFlow span {
+  border-color: var(--line);
+}
+
+.activeIntent,
+.viewSwitch .activeView {
+  background: var(--ink);
+}
+
+.buildButton {
+  background: var(--ink);
+  border-radius: 999px;
+}
+
+.buildButton:hover:not(:disabled) {
+  background: #2a2926;
+}
+
+.resultsTop h2 {
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.profileLine {
+  color: var(--gold);
+}
+
+.stayGrid {
+  gap: 14px;
+}
+
+.momentCard {
+  background: var(--surface);
+  border-radius: 18px;
+}
+
+.featuredMoment {
+  background:
+    radial-gradient(circle at 85% 10%, rgba(201,160,91,0.18), transparent 18rem),
+    var(--dark);
+}
+
+.momentAction {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 400;
+}
+
+.unexpectedStrip {
+  background: #e5d3b4;
+}
+
+.unexpectedStrip h3 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 400;
+}
+
+.staffPanel {
+  background: #151515;
+  border-radius: 20px;
+}
+
+.staffHeader h3 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 400;
+}
+
+.confidence b,
+.prepGrid article > span {
+  color: var(--gold);
+}
+
+.proof summary b,
+.traceRow em {
+  color: #8a6a32;
+}
+
+.systemFlow div:nth-of-type(2) {
+  background: var(--ink);
+  border-color: var(--ink);
+}
+
+.systemFlow b {
+  color: var(--gold);
+}
+
+footer div {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 400;
+  font-size: 38px;
+  letter-spacing: -1.8px;
+}
+
+@media (max-width: 1100px) {
+  .mainNav {
+    display: none;
+  }
+
+  .hero {
+    grid-template-columns: 0.7fr 1.3fr;
+  }
+
+  .heroAside {
+    grid-column: 2;
+  }
+}
+
+@media (max-width: 760px) {
+  .brandTagline {
+    display: none;
+  }
+
+  .topbar {
+    min-height: 72px;
+  }
+
+  .brand {
+    font-size: 34px;
+  }
+
+  .hero {
+    grid-template-columns: 1fr;
+    gap: 26px;
+  }
+
+  .heroVisual {
+    min-height: 360px;
+    border-radius: 0 0 90px 0;
+  }
+
+  .heroAside {
+    grid-column: auto;
+  }
+}
