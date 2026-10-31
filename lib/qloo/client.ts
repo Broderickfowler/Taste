@@ -209,11 +209,10 @@ export async function getInsights(args: {
   tags?: string;
   take?: number;
 }): Promise<QlooEntity[]> {
-  const payload = await qlooFetch("/v2/insights", {
+  const baseParams = {
     "filter.type": args.entityType,
     "signal.interests.entities": args.seedIds.join(","),
     "filter.exclude.entities": args.seedIds.join(","),
-    "filter.tags": args.tags,
     "feature.explainability": true,
     "filter.location.query":
       args.entityType === "urn:entity:place" ||
@@ -221,11 +220,25 @@ export async function getInsights(args: {
         ? args.location
         : undefined,
     take: args.take ?? 8,
+  };
+
+  const payload = await qlooFetch("/v2/insights", {
+    ...baseParams,
+    "filter.tags": args.tags,
   });
 
-  return extractEntityCandidates(payload)
+  let entities = extractEntityCandidates(payload)
     .map(normalizeEntity)
     .filter((entity): entity is QlooEntity => Boolean(entity));
+
+  if (!entities.length && args.tags && args.entityType === "urn:entity:place") {
+    const fallbackPayload = await qlooFetch("/v2/insights", baseParams);
+    entities = extractEntityCandidates(fallbackPayload)
+      .map(normalizeEntity)
+      .filter((entity): entity is QlooEntity => Boolean(entity));
+  }
+
+  return entities;
 }
 
 export async function getTasteTags(
