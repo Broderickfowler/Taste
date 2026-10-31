@@ -36,16 +36,30 @@ function moment(
   return { title, action, rationale, evidence: evidenceItems };
 }
 
+function isPresentationSafe(name: string) {
+  return /^[\p{Script=Latin}\p{Number}\p{Punctuation}\p{Separator}\p{Symbol}]+$/u.test(name);
+}
+
+function presentationNameAt(
+  domain: DomainResult | undefined,
+  index: number,
+  fallback: string,
+) {
+  const entities = domain?.entities ?? [];
+  const safe = entities.filter((entity) => isPresentationSafe(entity.name));
+  return safe[index]?.name || safe[0]?.name || fallback;
+}
+
 function placeAt(domain: DomainResult | undefined, index: number, fallback: string) {
-  return domain?.entities[index]?.name || fallback;
+  return presentationNameAt(domain, index, fallback);
 }
 
 function artistAt(domain: DomainResult | undefined, index: number, fallback: string) {
-  return domain?.entities[index]?.name || fallback;
+  return presentationNameAt(domain, index, fallback);
 }
 
 function filmAt(domain: DomainResult | undefined, index: number, fallback: string) {
-  return domain?.entities[index]?.name || fallback;
+  return presentationNameAt(domain, index, fallback);
 }
 
 export function synthesizeExperience(
