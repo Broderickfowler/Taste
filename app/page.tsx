@@ -106,14 +106,27 @@ export default function Home() {
   return (
     <main className="pageShell">
       <header className="topbar">
-        <a className="brand" href="#top" aria-label="Taste home">Taste</a>
+        <div className="brandLockup">
+          <a className="brand" href="#top" aria-label="Taste home">Taste</a>
+          <span className="brandTagline">THE SAME HOTEL. YOUR VERSION.</span>
+        </div>
+        <nav className="mainNav" aria-label="Taste sections">
+          <a href="#stay">My Stay</a>
+          <a href="#prep">Hotel Prep</a>
+          <a href="#fit">Why This Fits You</a>
+        </nav>
         <div className="topbarMeta">
-          <span>A stay that knows what you like.</span>
           <span className="qlooMark">Powered by Qloo</span>
         </div>
       </header>
 
       <section className="hero" id="top">
+        <div className="heroVisual">
+          <div className="heroVisualInner">
+            <span>PERSONALIZED HOSPITALITY</span>
+            <strong>CULTURE TURNS<br />STAYS INTO STORIES.</strong>
+          </div>
+        </div>
         <div className="heroCopy">
           <p className="eyebrow">PERSONALIZED HOSPITALITY, POWERED BY CULTURAL TASTE</p>
           <h1>The same hotel.<br /><em>Your version.</em></h1>
@@ -122,9 +135,9 @@ export default function Home() {
           </p>
         </div>
         <div className="heroAside">
-          <span className="heroIndex">01</span>
+          <span className="heroIndex">01 / YOUR TASTE</span>
           <p>
-            The hotel is already chosen. Taste does not recommend another property. It changes the stay you are about to have.
+            The hotel is already chosen. Taste translates cultural preference into a more personal room, arrival, dining, evening and local experience.
           </p>
         </div>
       </section>
@@ -232,7 +245,7 @@ export default function Home() {
           </div>
         </section>
       ) : (
-        <section className="results">
+        <section className="results" id="stay">
           <div className="resultsTop">
             <div>
               <p className="eyebrow">YOUR STAY / {result.guest.stayIntent.toUpperCase()}</p>
@@ -267,7 +280,7 @@ export default function Home() {
               </div>
             </>
           ) : (
-            <div className="staffPanel">
+            <div className="staffPanel" id="prep">
               <div className="staffHeader">
                 <div>
                   <span>GUEST EXPERIENCE CARD</span>
@@ -293,7 +306,7 @@ export default function Home() {
             </div>
           )}
 
-          <details className="proof">
+          <details className="proof" id="fit">
             <summary><span>WHY THIS FITS YOU</span><b>Inspect Qloo evidence</b></summary>
             <div className="proofBody">
               <div className="resolvedSeeds">
@@ -343,7 +356,7 @@ export default function Home() {
         <div>
           <span className="systemNumber">03</span>
           <p className="eyebrow">THE PRODUCT</p>
-          <h2>Hotels already ask what guests prefer. Taste tells them what to do with the answer.</h2>
+          <h2>Hospitality becomes more personal when culture becomes usable.</h2>
         </div>
         <div className="systemFlow">
           <div><span>GUEST TASTE</span><p>Three cultural references plus stay intent.</p></div>
