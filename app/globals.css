@@ -1917,3 +1917,36 @@ footer div {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Typed cultural reference controls */
+.referenceRow {
+  grid-template-columns: 42px 132px minmax(0, 1fr) auto;
+}
+
+.referenceRow select {
+  min-height: 54px;
+  padding: 0 34px 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #f4efe6;
+  color: var(--ink);
+  font-size: 10px;
+  font-weight: 800;
+  outline: none;
+}
+
+.referenceRow select:focus {
+  border-color: #6f403d;
+  box-shadow: 0 0 0 4px rgba(111,64,61,0.07);
+}
+
+@media (max-width: 760px) {
+  .referenceRow {
+    grid-template-columns: 28px 116px minmax(0, 1fr);
+  }
+
+  .referenceRow button {
+    grid-column: 3;
+  }
+}
