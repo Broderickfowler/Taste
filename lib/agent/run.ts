@@ -24,14 +24,25 @@ export async function runTasteAgent(
     status: "complete",
   });
 
-  for (const interest of guest.interests) {
+  const typeByKind: Record<string, string | undefined> = {
+    Artist: "urn:entity:artist",
+    Film: "urn:entity:movie",
+    Brand: "urn:entity:brand",
+    Restaurant: "urn:entity:place",
+    Cuisine: undefined,
+    Activity: undefined,
+    Other: undefined,
+  };
+
+  for (const [index, interest] of guest.interests.entries()) {
     try {
-      const entity = await searchEntity(interest);
+      const kind = guest.interestKinds[index] ?? "Other";
+      const entity = await searchEntity(interest, typeByKind[kind]);
       if (entity) {
         resolvedSeeds.push(entity);
         trace.push({
           stage: "RESOLVE",
-          detail: 'Resolved "' + interest + '" to Qloo entity ' + entity.name + " (" + entity.id + ").",
+          detail: 'Resolved "' + interest + '" (' + kind + ') to Qloo entity ' + entity.name + " (" + entity.id + ").",
           status: "complete",
         });
       } else {
