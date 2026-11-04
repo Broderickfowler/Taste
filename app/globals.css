@@ -1658,3 +1658,262 @@ footer div {
     radial-gradient(circle at 90% 0%, rgba(184,111,82,0.16), transparent 22rem),
     #161615;
 }
+
+
+/* Taste V2 guided intake */
+.sectionNote {
+  max-width: 520px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.v2Builder {
+  display: grid;
+  gap: 28px;
+}
+
+.contextGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.v2Group {
+  padding-top: 24px;
+  border-top: 1px solid var(--soft);
+}
+
+.fieldLabel {
+  display: block;
+  color: #80684c;
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.choiceRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.choiceChip {
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: #fffefb;
+  color: var(--ink);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.choiceChip:hover {
+  border-color: #8c7862;
+}
+
+.activeChoice {
+  border-color: var(--ink);
+  background: var(--ink);
+  color: white;
+}
+
+.groupHead {
+  display: flex;
+  justify-content: space-between;
+  gap: 28px;
+  align-items: start;
+}
+
+.groupHead p {
+  max-width: 720px;
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.groupHead > b {
+  padding: 7px 10px;
+  border-radius: 999px;
+  background: #efe4cf;
+  color: #5e4d37;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.preferenceGrid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.preferenceCard {
+  min-height: 96px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-start;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fffefb;
+  color: var(--ink);
+  text-align: left;
+}
+
+.preferenceCard span {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.preferenceCard strong {
+  font-size: 10px;
+  line-height: 1.25;
+}
+
+.preferenceCard:hover {
+  border-color: #8c7862;
+  transform: translateY(-1px);
+}
+
+.selectedPreference {
+  border-color: #6f403d;
+  background: #f4e9e3;
+}
+
+.selectedPreference span {
+  border-color: #6f403d;
+  background: #6f403d;
+  color: white;
+}
+
+.culturalFollowup {
+  padding-bottom: 2px;
+}
+
+.addReference {
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 8px;
+  font-weight: 900;
+  letter-spacing: 0.4px;
+}
+
+.addReference:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.referenceList {
+  display: grid;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.referenceRow {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.referenceRow > span {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.referenceRow input {
+  min-height: 54px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  outline: none;
+  background: #fffefb;
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 18px;
+}
+
+.referenceRow input:focus {
+  border-color: #6f403d;
+  box-shadow: 0 0 0 4px rgba(111,64,61,0.07);
+}
+
+.referenceRow button {
+  padding: 9px 10px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 8px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.referenceRow button:disabled {
+  opacity: 0.25;
+}
+
+.validationNote {
+  margin: -12px 2px 0;
+  color: #8b6547;
+  font-size: 9px;
+  line-height: 1.45;
+}
+
+@media (max-width: 1180px) {
+  .contextGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .preferenceGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .contextGrid,
+  .preferenceGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .groupHead {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .referenceRow {
+    grid-template-columns: 28px minmax(0, 1fr);
+  }
+
+  .referenceRow button {
+    grid-column: 2;
+    justify-self: start;
+    padding-left: 0;
+  }
+
+  .sectionNote {
+    max-width: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .contextGrid,
+  .preferenceGrid {
+    grid-template-columns: 1fr;
+  }
+}
