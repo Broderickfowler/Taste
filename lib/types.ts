@@ -34,6 +34,15 @@ export type PreferenceCategory =
   | "Design"
   | "Nature";
 
+export type InterestKind =
+  | "Artist"
+  | "Film"
+  | "Brand"
+  | "Restaurant"
+  | "Cuisine"
+  | "Activity"
+  | "Other";
+
 export type GuestBrief = {
   guestName?: string;
   propertyName: string;
@@ -46,6 +55,7 @@ export type GuestBrief = {
   children: number;
   preferences: PreferenceCategory[];
   interests: string[];
+  interestKinds: InterestKind[];
 };
 
 export type SeedContribution = {
