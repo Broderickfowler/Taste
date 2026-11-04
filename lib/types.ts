@@ -5,12 +5,46 @@ export type CulturalDomain =
   | "film"
   | "local";
 
-export type StayIntent = "Rest" | "Explore" | "Romance" | "Nightlife" | "Food";
+export type StayIntent =
+  | "Rest"
+  | "Explore"
+  | "Romance"
+  | "Nightlife"
+  | "Food"
+  | "Celebrate"
+  | "Business";
+
+export type TripPurpose = "Leisure" | "Business" | "Celebration" | "Mixed";
+
+export type BudgetTier = "$" | "$$" | "$$$" | "$$$$";
+
+export type PreferenceCategory =
+  | "Live Music"
+  | "Fine Dining"
+  | "Local Food"
+  | "Art"
+  | "Architecture"
+  | "Shopping"
+  | "Spa"
+  | "Wellness"
+  | "Nightlife"
+  | "Walking Distance"
+  | "Guided Tours"
+  | "In-room Services"
+  | "Design"
+  | "Nature";
 
 export type GuestBrief = {
+  guestName?: string;
   propertyName: string;
   location: string;
   stayIntent: StayIntent;
+  tripPurpose: TripPurpose;
+  budgetTier: BudgetTier;
+  partySize: number;
+  adults: number;
+  children: number;
+  preferences: PreferenceCategory[];
   interests: string[];
 };
 
