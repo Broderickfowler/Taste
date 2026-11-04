@@ -5,6 +5,7 @@ import type {
   BudgetTier,
   GuestBrief,
   HospitalityExperience,
+  InterestKind,
   PreferenceCategory,
   StayIntent,
   TasteAgentResult,
@@ -49,7 +50,16 @@ const INTENTS: StayIntent[] = [
 ];
 
 const PURPOSES: TripPurpose[] = ["Leisure", "Business", "Celebration", "Mixed"];
-const BUDGETS: BudgetTier[] = ["$", "$$", "$$$", "$$$$"];
+const BUDGETS: BudgetTier[] = ["$", "$", "$$", "$$"];
+const INTEREST_KINDS: InterestKind[] = [
+  "Artist",
+  "Film",
+  "Brand",
+  "Restaurant",
+  "Cuisine",
+  "Activity",
+  "Other",
+];
 
 const DEFAULT_GUEST: GuestBrief = {
   guestName: "Matthew",
@@ -63,6 +73,7 @@ const DEFAULT_GUEST: GuestBrief = {
   children: 0,
   preferences: ["Art", "Fine Dining", "Walking Distance"],
   interests: ["Guillermo del Toro", "Neo Soul"],
+  interestKinds: ["Film", "Other"],
 };
 
 type Moment = HospitalityExperience["room"];
@@ -140,15 +151,27 @@ export default function Home() {
     setError(null);
   }
 
+  function setInterestKind(index: number, kind: InterestKind) {
+    updateGuest({
+      interestKinds: guest.interestKinds.map((item, itemIndex) =>
+        itemIndex === index ? kind : item,
+      ),
+    });
+  }
+
   function addInterest() {
     if (guest.interests.length >= 5) return;
-    updateGuest({ interests: [...guest.interests, ""] });
+    updateGuest({
+      interests: [...guest.interests, ""],
+      interestKinds: [...guest.interestKinds, "Other"],
+    });
   }
 
   function removeInterest(index: number) {
     if (guest.interests.length <= 1) return;
     updateGuest({
       interests: guest.interests.filter((_, itemIndex) => itemIndex !== index),
+      interestKinds: guest.interestKinds.filter((_, itemIndex) => itemIndex !== index),
     });
   }
 
@@ -335,6 +358,13 @@ export default function Home() {
               {guest.interests.map((interest, index) => (
                 <div className="referenceRow" key={index}>
                   <span>{String(index + 1).padStart(2, "0")}</span>
+                  <select
+                    value={guest.interestKinds[index] ?? "Other"}
+                    onChange={(event) => setInterestKind(index, event.target.value as InterestKind)}
+                    aria-label={"Reference type " + (index + 1)}
+                  >
+                    {INTEREST_KINDS.map((kind) => <option key={kind} value={kind}>{kind}</option>)}
+                  </select>
                   <input
                     value={interest}
                     placeholder={index === 0 ? "Example: Sade" : "Example: A24, Bottega Veneta, omakase"}
