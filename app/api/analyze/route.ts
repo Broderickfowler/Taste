@@ -41,6 +41,18 @@ const GuestSchema = z.object({
   children: z.number().int().min(0).max(19),
   preferences: z.array(PreferenceSchema).min(3).max(14),
   interests: z.array(z.string().min(1).max(80)).min(1).max(5),
+  interestKinds: z.array(z.enum([
+    "Artist",
+    "Film",
+    "Brand",
+    "Restaurant",
+    "Cuisine",
+    "Activity",
+    "Other",
+  ])).min(1).max(5),
+}).refine((value) => value.interests.length === value.interestKinds.length, {
+  message: "Each cultural reference needs a type.",
+  path: ["interestKinds"],
 }).refine((value) => value.adults + value.children === value.partySize, {
   message: "Adults and children must add up to party size.",
   path: ["partySize"],
