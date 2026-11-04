@@ -90,7 +90,11 @@ export function synthesizeExperience(
           ? "intimate / sensory / unhurried"
           : guest.stayIntent === "Food"
             ? "food-led / local / discovery-driven"
-            : "curious / local / culture-led";
+            : guest.stayIntent === "Celebrate"
+              ? "celebratory / social / occasion-led"
+              : guest.stayIntent === "Business"
+                ? "efficient / polished / low-friction"
+                : "curious / local / culture-led";
 
   const roomAction: Record<GuestBrief["stayIntent"], string> = {
     Rest: "Before arrival, close the blackout curtains halfway, set only the bedside lamps to warm light, turn the TV off, remove unnecessary tabletop materials, and place water beside the bed.",
@@ -98,6 +102,8 @@ export function synthesizeExperience(
     Romance: "Set warm low lighting, remove visual clutter, place two glasses and chilled sparkling water in the room, and keep the first hour after arrival free of nonessential service interruptions.",
     Nightlife: "Use a brighter arrival light preset, place two bottles of water by the bed, make charging access obvious, and leave a late-return card with room-service and transport information.",
     Food: "Keep the room minimal, place water and a small palate-cleansing snack at arrival, and have the dinner route and reservation details visible before the guest unpacks.",
+    Celebrate: "Set a welcoming arrival scene with warm light, chilled water, glassware for the party, and one clear card showing the evening plan so the occasion feels organized from check-in.",
+    Business: "Keep the desk completely clear, make charging and Wi-Fi details immediately visible, place water within reach, and minimize nonessential room materials so the guest can work without friction.",
   };
 
   const welcomeAction: Record<GuestBrief["stayIntent"], string> = {
@@ -106,6 +112,8 @@ export function synthesizeExperience(
     Romance: "Set out chilled sparkling water, two glasses, seasonal fruit, and a small piece of dark chocolate.",
     Nightlife: "Offer cold sparkling water, citrus, and a light salty snack before the guest heads out for the evening.",
     Food: "Serve a small local tasting bite with a nonalcoholic aperitif so the first food moment feels intentional without replacing dinner.",
+    Celebrate: "Offer sparkling water, glassware, and a small shareable welcome bite sized for the party so the first moment feels like an occasion without becoming a full service event.",
+    Business: "Offer chilled water, coffee or tea, and a small clean snack that can be eaten at the desk without interrupting the work setup.",
   };
 
   const afterAction: Record<GuestBrief["stayIntent"], string> = {
@@ -114,6 +122,8 @@ export function synthesizeExperience(
     Romance: "Use " + eveningPlace + " as the late stop and keep the recommendation focused on atmosphere, conversation, and a slower pace.",
     Nightlife: "Send the guest to " + eveningPlace + " after dinner as the primary late-night move, then keep one transport option ready for the return to the hotel.",
     Food: "After dinner, use " + eveningPlace + " as the second stop for a drink, dessert, or late bite instead of sending the guest to an unrelated nightlife venue.",
+    Celebrate: "Use " + eveningPlace + " as the optional continuation after the main celebration, but keep transport back to the hotel ready so the group can extend or end the night easily.",
+    Business: "Keep the evening optional. Recommend " + eveningPlace + " only if it is convenient, polished, and low-friction after the workday rather than building a long night out.",
   };
 
   const tomorrowAction: Record<GuestBrief["stayIntent"], string> = {
@@ -122,10 +132,18 @@ export function synthesizeExperience(
     Romance: "Keep the morning unhurried and use " + discovery + " as the only planned stop before lunch.",
     Nightlife: "Plan a slower start, late coffee, and " + discovery + " as the first daytime stop so the schedule respects the previous night.",
     Food: "Use " + discovery + " as the daytime anchor, then add one nearby lunch recommendation from the same local area.",
+    Celebrate: "Start slowly after the celebration and use " + discovery + " as one flexible group-friendly option rather than locking the party into a packed schedule.",
+    Business: "Protect the work schedule first, then use " + discovery + " as a compact nearby option that can fit into a free hour without creating travel risk.",
   };
 
+  const contextLine =
+    guest.partySize + " guest" + (guest.partySize === 1 ? "" : "s") +
+    " · " + guest.tripPurpose.toLowerCase() +
+    " · " + guest.budgetTier + " spend comfort" +
+    " · " + guest.preferences.slice(0, 4).join(" / ");
+
   return {
-    profile,
+    profile: profile + " · " + contextLine,
     headline: guest.propertyName + ", tuned to this guest.",
     room: moment(
       "ROOM",
